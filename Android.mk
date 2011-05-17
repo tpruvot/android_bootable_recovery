@@ -126,6 +126,16 @@ LOCAL_STATIC_LIBRARIES := libmincrypt libcutils libstdc++ libc
 
 include $(BUILD_EXECUTABLE)
 
+# defy bootmenu recovery :
+include $(CLEAR_VARS)
+LOCAL_MODULE := bootmenu_recovery
+LOCAL_MODULE_TAGS := eng
+LOCAL_MODULE_CLASS := EXECUTABLES
+LOCAL_SRC_FILES   := ../../$(PRODUCT_OUT)/system/bin/recovery
+LOCAL_MODULE_PATH := $(PRODUCT_OUT)/system/bootmenu/recovery/sbin
+LOCAL_MODULE_STEM := recovery
+include $(BUILD_PREBUILT)
+
 
 include $(commands_recovery_local_path)/bmlutils/Android.mk
 include $(commands_recovery_local_path)/flashutils/Android.mk
