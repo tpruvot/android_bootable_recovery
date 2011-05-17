@@ -131,7 +131,8 @@ include $(CLEAR_VARS)
 LOCAL_MODULE := bootmenu_recovery
 LOCAL_MODULE_TAGS := eng
 LOCAL_MODULE_CLASS := EXECUTABLES
-LOCAL_SRC_FILES   := ../../$(PRODUCT_OUT)/system/bin/recovery
+#LOCAL_SRC_FILES   := ../../$(PRODUCT_OUT)/system/bin/recovery #only for mm in local folder
+LOCAL_SRC_FILES   := ../../$(PRODUCT_OUT)/recovery/root/sbin/recovery
 LOCAL_MODULE_PATH := $(PRODUCT_OUT)/system/bootmenu/recovery/sbin
 LOCAL_MODULE_STEM := recovery
 include $(BUILD_PREBUILT)
