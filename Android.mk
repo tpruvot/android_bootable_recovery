@@ -27,7 +27,7 @@ LOCAL_MODULE := recovery
 LOCAL_FORCE_STATIC_EXECUTABLE := true
 
 RECOVERY_VERSION := ClockworkMod Recovery v3.1.0.1
-LOCAL_CFLAGS += -DRECOVERY_VERSION="$(RECOVERY_VERSION) (defy)"
+LOCAL_CFLAGS += -DRECOVERY_VERSION="$(RECOVERY_VERSION)-defy"
 RECOVERY_API_VERSION := 2
 LOCAL_CFLAGS += -DRECOVERY_API_VERSION=$(RECOVERY_API_VERSION)
 
@@ -68,6 +68,10 @@ LOCAL_STATIC_LIBRARIES += libminui libpixelflinger_static libpng libcutils
 LOCAL_STATIC_LIBRARIES += libstdc++ libc
 
 LOCAL_C_INCLUDES += system/extras/ext4_utils
+
+ifeq ($(TARGET_PRODUCT),cyanogen_jordan)
+LOCAL_MODULE_PATH := $(PRODUCT_OUT)/system/bootmenu/recovery/sbin
+endif
 
 include $(BUILD_EXECUTABLE)
 
@@ -125,17 +129,6 @@ LOCAL_MODULE_TAGS := tests
 LOCAL_STATIC_LIBRARIES := libmincrypt libcutils libstdc++ libc
 
 include $(BUILD_EXECUTABLE)
-
-# defy bootmenu recovery :
-include $(CLEAR_VARS)
-LOCAL_MODULE := bootmenu_recovery
-LOCAL_MODULE_TAGS := eng
-LOCAL_MODULE_CLASS := EXECUTABLES
-#LOCAL_SRC_FILES   := ../../$(PRODUCT_OUT)/system/bin/recovery #only for mm in local folder
-LOCAL_SRC_FILES   := ../../$(PRODUCT_OUT)/recovery/root/sbin/recovery
-LOCAL_MODULE_PATH := $(PRODUCT_OUT)/system/bootmenu/recovery/sbin
-LOCAL_MODULE_STEM := recovery
-include $(BUILD_PREBUILT)
 
 
 include $(commands_recovery_local_path)/bmlutils/Android.mk
