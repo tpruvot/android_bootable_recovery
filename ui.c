@@ -481,6 +481,21 @@ void ui_print(const char *fmt, ...)
     pthread_mutex_unlock(&gUpdateMutex);
 }
 
+void ui_printlogtail(int nb_lines) {
+    char log_data[2048]="\0";
+    char tmp[PATH_MAX];
+    FILE * f;
+    sprintf(tmp, "tail -n %d /tmp/recovery.log > /tmp/tail.log", nb_lines);
+    __system(tmp);
+    f = fopen("/tmp/tail.log", "rb");
+    if (f != NULL) {
+        fread(log_data, 2048, 1, f);
+        fclose(f);
+        ui_print("%s", log_data);
+    }
+}
+
+
 void ui_reset_text_col()
 {
     pthread_mutex_lock(&gUpdateMutex);

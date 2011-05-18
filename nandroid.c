@@ -254,6 +254,7 @@ int nandroid_restore_partition_extended(const char* backup_path, const char* mou
     */
     if (0 != (ret = format_volume(mount_point))) {
         ui_print("Error while formatting %s!\n", mount_point);
+        ui_printlogtail(4);
         return ret;
     }
     

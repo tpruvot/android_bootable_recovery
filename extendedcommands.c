@@ -869,6 +869,7 @@ void show_advanced_menu()
 							"Report Error",
 							"Kill adbd",
 							"Start adbd",
+							"Show Log",
 #ifndef BOARD_HAS_SMALL_RECOVERY
 							"Partition SD Card",
 							"Fix Permissions",
@@ -944,6 +945,12 @@ void show_advanced_menu()
 				__system("echo 'msc_adb' > /dev/usb_device_mode");
 				__system("/sbin/adbd.root &");
 				ui_print("adbd started.\n");
+				break;
+			}
+			case 6:
+			{
+				ui_printlogtail(5);
+				break;
 			}
 #else
 			case 5:
