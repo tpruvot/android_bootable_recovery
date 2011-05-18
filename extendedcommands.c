@@ -870,6 +870,7 @@ void show_advanced_menu()
 							"Kill adbd",
 							"Start adbd",
 							"Show Log",
+							"<-- return to bootmenu",
 #ifndef BOARD_HAS_SMALL_RECOVERY
 							"Partition SD Card",
 							"Fix Permissions",
@@ -949,7 +950,12 @@ void show_advanced_menu()
 			}
 			case 6:
 			{
-				ui_printlogtail(5);
+				ui_printlogtail(8);
+				break;
+			}
+			case 7:
+			{
+				__system("killall recovery");
 				break;
 			}
 #else
