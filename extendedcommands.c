@@ -960,7 +960,7 @@ void show_advanced_menu()
             }
             case 6:
             {
-                ui_printlogtail(8);
+                ui_printlogtail(20);
                 break;
             }
 #else
