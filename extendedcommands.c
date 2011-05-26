@@ -900,11 +900,13 @@ void show_advanced_menu()
         switch (chosen_item)
         {
             case 0:
+            {
 #ifdef TARGET_RECOVERY_PRE_COMMAND
                 __system( TARGET_RECOVERY_PRE_COMMAND );
 #endif
                 __reboot(LINUX_REBOOT_MAGIC1, LINUX_REBOOT_MAGIC2, LINUX_REBOOT_CMD_RESTART2, "recovery");
                 break;
+            }
             case 1:
             {
                 if (0 != ensure_path_mounted("/data"))
@@ -927,15 +929,39 @@ void show_advanced_menu()
                 break;
             }
             case 3:
+            {
                 handle_failure(1);
                 break;
+            }
+#ifdef BOARD_HAS_SMALL_RECOVERY
             case 4:
             {
-                __system("killall adbd");
                 __system("killall adbd.root");
-                ui_print("adbd stopped.\n");
-
-/* Disabled Feature "Key Test"
+                __system("killall adbd");
+                LOGI("\nkilling adbd...\n");
+                __system("ps w | grep adbd | grep -v grep >> /tmp/recovery.log");
+                ui_printlogtail(2);
+                break;
+            }
+            case 5:
+            {
+                __system("echo 'msc_adb' > /dev/usb_device_mode");
+                if (stat(ADBD_PATH, &info) == 0) {
+                    __system(ADBD_PATH " &");
+                    ui_print("adbd started.\n");
+                } else {
+                    LOGW("%s not found.\n", ADBD_PATH);
+                }
+                break;
+            }
+            case 6:
+            {
+                ui_printlogtail(8);
+                break;
+            }
+#else
+            case 4:
+            {
                 ui_print("Outputting key codes.\n");
                 ui_print("Go back to end debugging.\n");
                 int key;
@@ -947,28 +973,9 @@ void show_advanced_menu()
                     ui_print("Key: %d\n", key);
                 }
                 while (action != GO_BACK);
-*/
 
                 break;
             }
-#ifdef BOARD_HAS_SMALL_RECOVERY
-            case 5:
-            {
-                __system("echo 'msc_adb' > /dev/usb_device_mode");
-                if (stat(ADBD_PATH, &info) == 0) {
-                    __system(ADBD_PATH " &");
-                    ui_print("adbd started.\n");
-                } else {
-                    LOGW("%s non found.\n", ADBD_PATH);
-                }
-                break;
-            }
-            case 6:
-            {
-                ui_printlogtail(8);
-                break;
-            }
-#else
             case 5:
             {
                 static char* ext_sizes[] = { "128M",
