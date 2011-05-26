@@ -865,8 +865,11 @@ void wipe_battery_stats()
 	ensure_path_unmounted("/data");
 }
 
+#define ADBD_PATH "/sbin/adbd.root"
+
 void show_advanced_menu()
 {
+	struct stat info;
 	static char* headers[] = {  "Advanced and Debugging Menu",
 								"",
 								NULL
@@ -879,7 +882,6 @@ void show_advanced_menu()
 							"Kill adbd",
 							"Start adbd",
 							"Show Log",
-							"<-- return to bootmenu",
 #ifndef BOARD_HAS_SMALL_RECOVERY
 							"Partition SD Card",
 							"Fix Permissions",
@@ -953,18 +955,17 @@ void show_advanced_menu()
 			case 5:
 			{
 				__system("echo 'msc_adb' > /dev/usb_device_mode");
-				__system("/sbin/adbd.root &");
-				ui_print("adbd started.\n");
+				if (stat(ADBD_PATH, &info) == 0) {
+					__system(ADBD_PATH " &");
+					ui_print("adbd started.\n");
+				} else {
+					LOGW("%s non found.\n", ADBD_PATH);
+				}
 				break;
 			}
 			case 6:
 			{
 				ui_printlogtail(8);
-				break;
-			}
-			case 7:
-			{
-				__system("killall recovery");
 				break;
 			}
 #else

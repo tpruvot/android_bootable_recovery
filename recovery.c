@@ -756,6 +756,9 @@ prompt_and_wait() {
             case ITEM_POWEROFF:
                 poweroff=1;
                 return;
+            case ITEM_EXITRECOVERY:
+                finish_recovery(NULL);
+                exit(EXIT_SUCCESS);
         }
     }
 }
