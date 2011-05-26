@@ -759,9 +759,6 @@ prompt_and_wait() {
             case ITEM_EXITRECOVERY:
             case GO_BACK:
                 finish_recovery(NULL);
-                __system("echo 0 > /sys/class/leds/green/brightness");
-                __system("echo 0 > /sys/class/leds/red/brightness");
-                __system("echo 1 > /sys/class/leds/blue/brightness");
                 __system("/sbin/postrecoverymenu.sh");
                 exit(EXIT_SUCCESS);
         }
