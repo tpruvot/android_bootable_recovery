@@ -763,6 +763,7 @@ prompt_and_wait() {
             case GO_BACK:
                 // dont use finish recovery...
                 // finish_recovery(NULL);
+                __system("killall recovery");
                 exit(EXIT_SUCCESS);
                 return;
         }
