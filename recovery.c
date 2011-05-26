@@ -761,9 +761,8 @@ prompt_and_wait() {
                 return;
             case ITEM_EXITRECOVERY:
             case GO_BACK:
-                finish_recovery(NULL);
-                __system("/sbin/postrecoverymenu.sh");
-                __system("killall recovery");
+                // dont use finish recovery...
+                // finish_recovery(NULL);
                 exit(EXIT_SUCCESS);
                 return;
         }
