@@ -883,16 +883,18 @@ void show_advanced_menu()
                             "Wipe Dalvik Cache",
                             "Wipe Battery Stats",
                             "Report Error",
+#ifdef BOARD_HAS_SMALL_RECOVERY
                             "Kill adbd",
                             "Start adbd",
                             "Show Log",
-#ifndef BOARD_HAS_SMALL_RECOVERY
+#else
+                            "Key Test",
                             "Partition SD Card",
                             "Fix Permissions",
 # ifdef BOARD_HAS_SDCARD_INTERNAL
                             "Partition Internal SD Card",
 # endif
-#endif
+#endif // BOARD_HAS_SMALL_RECOVERY
                             NULL
     };
 
