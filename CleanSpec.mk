@@ -45,10 +45,9 @@
 # $(call add-clean-step, rm -rf $(PRODUCT_OUT)/data/*)
 
 ifeq ($(PRODUCT_OUT),)
-	PRODUCT_OUT := $OUT
+	PRODUCT_OUT := $ANDROID_PRODUCT_OUT
 endif
 
-$(call add-clean-step, rm -rf $(PRODUCT_OUT)/obj/EXECUTABLES/recovery_intermediates/LINKED/recovery)
 $(call add-clean-step, rm -rf $(PRODUCT_OUT)/symbols/system/bootmenu/recovery/sbin/recovery)
 $(call add-clean-step, rm -rf $(PRODUCT_OUT)/obj/EXECUTABLES/recovery_intermediates)
 
