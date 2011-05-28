@@ -497,7 +497,7 @@ void ui_printlogtail(int nb_lines) {
             log_data = fgets(tmp, PATH_MAX, f);
             if (log_data == NULL) break;
             ui_print("%s", tmp);
-            line++
+            line++;
         }
         fclose(f);
     }

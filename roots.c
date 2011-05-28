@@ -186,6 +186,12 @@ int ensure_path_mounted(const char* path) {
         find_mounted_volume_by_mount_point(v->mount_point);
     if (mv) {
         // volume is already mounted
+
+#ifdef NEVER_UMOUNT_SYSTEM
+    if (strcmp(v->mount_point, "/system") == 0) {
+        __system("mount -o remount,rw /system");
+    }
+#endif
         return 0;
     }
 
@@ -250,6 +256,13 @@ int ensure_path_unmounted(const char* path) {
         // volume is already unmounted
         return 0;
     }
+
+#ifdef NEVER_UMOUNT_SYSTEM
+    if (strcmp(v->mount_point, "/system") == 0) {
+        __system("mount -o remount,ro /system");
+        return 0;
+    }
+#endif
 
     return unmount_mounted_volume(mv);
 }
