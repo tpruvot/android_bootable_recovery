@@ -189,7 +189,6 @@ int ensure_path_mounted(const char* path) {
 
 #ifdef NEVER_UMOUNT_SYSTEM
     if (strcmp(v->mount_point, "/system") == 0) {
-	LOGI("Mounting system read-write");
         __system("mount -o remount,rw /system");
     }
 #endif
@@ -257,13 +256,6 @@ int ensure_path_unmounted(const char* path) {
         // volume is already unmounted
         return 0;
     }
-
-#ifdef NEVER_UMOUNT_SYSTEM
-    if (strcmp(v->mount_point, "/system") == 0) {
-        __system("mount -o remount,ro /system");
-        return 0;
-    }
-#endif
 
     return unmount_mounted_volume(mv);
 }
