@@ -762,10 +762,13 @@ prompt_and_wait() {
             case ITEM_EXITRECOVERY:
             case GO_BACK:
                 // dont use finish recovery...
-                // finish_recovery(NULL);
-                __system("killall recovery");
-                exit(EXIT_SUCCESS);
-                return;
+                //finish_recovery(NULL);
+
+                __system("nohup /sbin/recoveryexit.sh");
+                //__system("killall recovery");
+
+                //exit(EXIT_SUCCESS);
+                //return;
         }
     }
 }

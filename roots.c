@@ -189,6 +189,7 @@ int ensure_path_mounted(const char* path) {
 
 #ifdef NEVER_UMOUNT_SYSTEM
     if (strcmp(v->mount_point, "/system") == 0) {
+	LOGI("Mounting system read-write");
         __system("mount -o remount,rw /system");
     }
 #endif
@@ -289,10 +290,23 @@ int format_volume(const char* volume) {
         return format_unknown_device(v->device, volume, NULL);
     }
 
+    // force the "rm -rf" method
+    int rmrf_format=0;
+
 #ifdef NEVER_FORMAT_PARTITIONS
-        // use directly the "rm -rf" method
-       return format_unknown_device(v->device, volume, v->fs_type);
+    rmrf_format=1;
 #endif
+
+#ifdef NEVER_UMOUNT_SYSTEM
+    if (strcmp(v->mount_point, "/system") == 0) {
+        rmrf_format=1;
+    }
+#endif
+
+    if (rmrf_format) {
+        // use directly the "rm -rf" method
+        return format_unknown_device(v->device, volume, v->fs_type);
+    }
 
     if (ensure_path_unmounted(volume) != 0) {
         LOGE("format_volume failed to unmount \"%s\"\n", v->mount_point);
