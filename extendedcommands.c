@@ -901,6 +901,9 @@ void show_advanced_menu()
                             NULL
     };
 
+    //reset green led (set in before recovery start in bootmenu)
+    __system("echo 0 > /sys/class/leds/green/brightness");
+
     for (;;)
     {
         int chosen_item = get_menu_selection(headers, list, 0, 0);
