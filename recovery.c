@@ -427,7 +427,7 @@ copy_sideloaded_package(const char* original_path) {
 
 static char**
 prepend_title(char** headers) {
-    char* title[] = { EXPAND(RECOVERY_VERSION) EXPAND(RECOVERY_VERSION_SUFFIX),
+    char* title[] = { EXPAND(RECOVERY_VERSION) "-defy",
                       "",
                       NULL };
 
@@ -544,7 +544,7 @@ sdcard_directory(const char* path) {
         return 0;
     }
 
-    char** headers = prepend_title(MENU_HEADERS);
+    char** headers = prepend_title((char **)MENU_HEADERS);
 
     int d_size = 0;
     int d_alloc = 10;
@@ -658,7 +658,7 @@ wipe_data(int confirm) {
                                 "  THIS CAN NOT BE UNDONE.",
                                 "",
                                 NULL };
-            title_headers = prepend_title((const char**)headers);
+            title_headers = prepend_title((char**)headers);
         }
 
         char* items[] = { " No",
@@ -694,7 +694,7 @@ wipe_data(int confirm) {
 
 static void
 prompt_and_wait() {
-    char** headers = prepend_title((const char**)MENU_HEADERS);
+    char** headers = prepend_title((char**)MENU_HEADERS);
 
     for (;;) {
         finish_recovery(NULL);
