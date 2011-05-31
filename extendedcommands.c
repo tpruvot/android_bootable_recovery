@@ -420,52 +420,58 @@ int confirm_selection(const char* title, const char* confirm)
 
 int format_unknown_device(const char *device, const char* path, const char *fs_type)
 {
+    int skip_format = 0;
 
-#ifndef NEVER_FORMAT_PARTITIONS
-    LOGI("Formatting unknown device.\n");
+#ifdef NEVER_FORMAT_PARTITIONS
+    skip_format = 1;
+#endif
 
-    // device may simply be a name, like "system"
-    if (get_flash_type(fs_type) != UNSUPPORTED)
-        return erase_raw_partition(fs_type, device);
+    if (skip_format == 0) {
+        LOGI("Formatting unknown device.\n");
 
-    // if this is SDEXT:, don't worry about it if it does not exist.
-    if (0 == strcmp(path, "/sd-ext"))
-    {
-        struct stat st;
-        Volume *vol = volume_for_path("/sd-ext");
-        if (vol == NULL || 0 != stat(vol->device, &st))
+        // device may simply be a name, like "system"
+        if (get_flash_type(fs_type) != UNSUPPORTED)
+            return erase_raw_partition(fs_type, device);
+
+        // if this is SDEXT:, don't worry about it if it does not exist.
+        if (0 == strcmp(path, "/sd-ext"))
         {
-            ui_print("No app2sd partition found. Skipping format of /sd-ext.\n");
+            struct stat st;
+            Volume *vol = volume_for_path("/sd-ext");
+            if (vol == NULL || 0 != stat(vol->device, &st))
+            {
+                ui_print("No app2sd partition found. Skipping format of /sd-ext.\n");
+                return 0;
+            }
+        }
+
+        if (NULL != fs_type) {
+            if (strcmp("ext3", fs_type) == 0) {
+                LOGI("Formatting ext3 device.\n");
+                if (0 != ensure_path_unmounted(path)) {
+                    LOGE("Error while unmounting %s.\n", path);
+                    return -12;
+                }
+                return format_ext3_device(device);
+            }
+
+            if (strcmp("ext2", fs_type) == 0) {
+                LOGI("Formatting ext2 device.\n");
+                if (0 != ensure_path_unmounted(path)) {
+                    LOGE("Error while unmounting %s.\n", path);
+                    return -12;
+                }
+                return format_ext2_device(device);
+            }
+        }
+    } else {
+        //skip_format
+        LOGI("Deleting from device...\n");
+        if (strlen(path) < 2) {
+            ui_print("Bad path : %s \n", path);
             return 0;
         }
     }
-
-    if (NULL != fs_type) {
-        if (strcmp("ext3", fs_type) == 0) {
-            LOGI("Formatting ext3 device.\n");
-            if (0 != ensure_path_unmounted(path)) {
-                LOGE("Error while unmounting %s.\n", path);
-                return -12;
-            }
-            return format_ext3_device(device);
-        }
-
-        if (strcmp("ext2", fs_type) == 0) {
-            LOGI("Formatting ext2 device.\n");
-            if (0 != ensure_path_unmounted(path)) {
-                LOGE("Error while unmounting %s.\n", path);
-                return -12;
-            }
-            return format_ext2_device(device);
-        }
-    }
-#else
-    LOGI("Deleting from device...\n");
-    if (strlen(path) < 2) {
-        ui_print("Bad path : %s \n", path);
-        return 0;
-    }
-#endif //NEVER_FORMAT_PARTITIONS
 
     if (0 != ensure_path_mounted(path))
     {
@@ -512,7 +518,6 @@ int is_safe_to_format(char* name)
         }
         partition = strtok(NULL, ", ");
     }
-
     return 1;
 }
 
@@ -778,7 +783,7 @@ void show_nandroid_advanced_restore_menu()
                             "Restore wimax",
                             NULL
     };
-    
+
     char tmp[PATH_MAX];
     if (0 != get_partition_device("wimax", tmp)) {
         // disable wimax restore option
@@ -922,7 +927,7 @@ void show_advanced_menu()
                     __system("rm -r /cache/dalvik-cache");
                     __system("rm -r /sd-ext/dalvik-cache");
                 }
-                ensure_path_unmounted("/data");
+                //ensure_path_unmounted("/data");
                 ui_print("Dalvik Cache wiped.\n");
                 break;
             }
@@ -1131,13 +1136,13 @@ int bml_check_volume(const char *path) {
         ensure_path_unmounted(path);
         return 0;
     }
-    
+
     Volume *vol = volume_for_path(path);
     if (vol == NULL) {
         LOGE("Unable process volume! Skipping...\n");
         return 0;
     }
-    
+
     ui_print("%s may be rfs. Checking...\n", path);
     char tmp[PATH_MAX];
     sprintf(tmp, "mount -t rfs %s %s", vol->device, path);
@@ -1148,7 +1153,7 @@ int bml_check_volume(const char *path) {
 
 void process_volumes() {
     create_fstab();
-    
+
     return;
 
     // dead code.
@@ -1162,12 +1167,12 @@ void process_volumes() {
     if (has_datadata())
         ret |= bml_check_volume("/datadata");
     ret |= bml_check_volume("/cache");
-    
+
     if (ret == 0) {
         ui_print("Done!\n");
         return;
     }
-    
+
     char backup_path[PATH_MAX];
     time_t t = time(NULL);
     char backup_name[PATH_MAX];

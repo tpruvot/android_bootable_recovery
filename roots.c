@@ -190,6 +190,7 @@ int ensure_path_mounted(const char* path) {
 #ifdef NEVER_UMOUNT_SYSTEM
     if (strcmp(v->mount_point, "/system") == 0) {
         __system("mount -o remount,rw /system");
+        __system("echo 0 > /sys/class/leds/red/brightness");
     }
 #endif
         return 0;

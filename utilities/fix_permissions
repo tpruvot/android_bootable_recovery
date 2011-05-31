@@ -72,6 +72,8 @@ SYSREMOUNT=0
 SYSMOUNT=0
 DATAMOUNT=0
 SYSSDMOUNT=0
+LED_RED=/sys/class/leds/red/brightness
+
 FP_STARTTIME=$( $DATE +"%m-%d-%Y %H:%M:%S" )
 FP_STARTEPOCH=$( $DATE +%s )
 if $TEST "$SD_EXT_DIRECTORY" = ""; then
@@ -182,6 +184,7 @@ fp_start()
          fi
          if $TEST $( $GREP " /system " "/proc/mounts" | $GREP -c " ro " ) -ne 0; then
             $MOUNT -o remount,rw $DEVICE /system
+            echo 0 > $LED_RED
             SYSREMOUNT=1
          fi
       else
@@ -450,6 +453,7 @@ fp_end()
 {
    if $TEST $SYSREMOUNT -eq 1; then
       $MOUNT -o remount,ro $DEVICE /system > /dev/null 2>&1
+      echo 1 > $LED_RED
    fi
    
    if $TEST $SYSSDMOUNT -eq 1; then
