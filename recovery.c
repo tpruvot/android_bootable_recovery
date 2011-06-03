@@ -764,11 +764,8 @@ prompt_and_wait() {
                 // dont use finish recovery...
                 //finish_recovery(NULL);
 
+                //choose what to do in this script... (kill or not)
                 __system("nohup /sbin/recoveryexit.sh");
-                //__system("killall recovery");
-
-                //exit(EXIT_SUCCESS);
-                //return;
         }
     }
 }
