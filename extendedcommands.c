@@ -424,6 +424,8 @@ int format_unknown_device(const char *device, const char* path, const char *fs_t
 
 #ifdef NEVER_FORMAT_PARTITIONS
     skip_format = 1;
+#else
+    skip_format = !(is_safe_to_format(path));
 #endif
 
     if (skip_format == 0) {
@@ -509,11 +511,16 @@ int is_safe_to_format(char* name)
 {
     char str[255];
     char* partition;
-    property_get("ro.cwm.forbid_format", str, "/misc,/radio,/bootloader,/recovery");
+    //property_get("ro.cwm.forbid_format", str, "/misc,/radio,/bootloader,/recovery");
+
+    //hardcoded change for the moment (defy)
+    property_get("ro.cwm.forbid_format", str, "/misc,/cid,/boot,/recovery,/system,/data");
+    LOGI("ro.cwm.forbid_format=%s\n", str);
 
     partition = strtok(str, ", ");
     while (partition != NULL) {
         if (strcmp(name, partition) == 0) {
+            LOGI("%s is not safe to format\n", name);
             return 0;
         }
         partition = strtok(NULL, ", ");
