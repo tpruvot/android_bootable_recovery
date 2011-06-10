@@ -343,7 +343,7 @@ void show_nandroid_restore_menu()
 }
 
 #ifndef BOARD_UMS_LUNFILE
-#define BOARD_UMS_LUNFILE   "/sys/devices/platform/usb_mass_storage/lun0/file"
+#define BOARD_UMS_LUNFILE  "/sys/devices/platform/usb_mass_storage/lun0/file"
 #endif
 
 void show_mount_usb_storage_menu()
@@ -420,15 +420,16 @@ int confirm_selection(const char* title, const char* confirm)
 
 int format_unknown_device(const char *device, const char* path, const char *fs_type)
 {
-    int skip_format = 0;
+    int do_format = true;
 
 #ifdef NEVER_FORMAT_PARTITIONS
-    skip_format = 1;
+    do_format = 0;
 #else
-    skip_format = !(is_safe_to_format(path));
+    do_format = is_safe_to_format(path);
 #endif
 
-    if (skip_format == 0) {
+    if (do_format) {
+
         LOGI("Formatting unknown device.\n");
 
         // device may simply be a name, like "system"
@@ -466,13 +467,16 @@ int format_unknown_device(const char *device, const char* path, const char *fs_t
                 return format_ext2_device(device);
             }
         }
+
     } else {
-        //skip_format
-        LOGI("Deleting from device...\n");
+
+        //dont do_format
+        LOGI("Erasing from device...\n");
         if (strlen(path) < 2) {
             ui_print("Bad path : %s \n", path);
             return 0;
         }
+
     }
 
     if (0 != ensure_path_mounted(path))
@@ -483,9 +487,9 @@ int format_unknown_device(const char *device, const char* path, const char *fs_t
     }
 
     static char tmp[PATH_MAX];
-    sprintf(tmp, "rm -rf %s/*", path);
+    sprintf(tmp, "rm -rf %s/* >>/tmp/recovery.log", path);
     __system(tmp);
-    sprintf(tmp, "rm -rf %s/.*", path);
+    sprintf(tmp, "rm -rf %s/.* >>/tmp/recovery.log", path);
     __system(tmp);
 
     ensure_path_unmounted(path);
@@ -549,33 +553,33 @@ void show_partition_menu()
     if(!device_volumes)
         return;
 
-        mountable_volumes = 0;
-        formatable_volumes = 0;
+    mountable_volumes = 0;
+    formatable_volumes = 0;
 
-        mount_menue = malloc(num_volumes * sizeof(MountMenuEntry));
-        format_menue = malloc(num_volumes * sizeof(FormatMenuEntry));
+    mount_menue = malloc(num_volumes * sizeof(MountMenuEntry));
+    format_menue = malloc(num_volumes * sizeof(FormatMenuEntry));
 
-        for (i = 0; i < num_volumes; ++i) {
-            Volume* v = &device_volumes[i];
-            if(strcmp("ramdisk", v->fs_type) != 0 && strcmp("mtd", v->fs_type) != 0 && strcmp("emmc", v->fs_type) != 0 && strcmp("bml", v->fs_type) != 0)
-            {
-                sprintf(&mount_menue[mountable_volumes].mount, "mount %s", v->mount_point);
-                sprintf(&mount_menue[mountable_volumes].unmount, "unmount %s", v->mount_point);
-                mount_menue[mountable_volumes].v = &device_volumes[i];
-                ++mountable_volumes;
-                if (is_safe_to_format(v->mount_point)) {
-                    sprintf(&format_menue[formatable_volumes].txt, "format %s", v->mount_point);
-                    format_menue[formatable_volumes].v = &device_volumes[i];
-                    ++formatable_volumes;
-                }
-            }
-            else if (strcmp("ramdisk", v->fs_type) != 0 && strcmp("mtd", v->fs_type) == 0 && is_safe_to_format(v->mount_point))
-            {
-                sprintf(&format_menue[formatable_volumes].txt, "format %s", v->mount_point);
-                format_menue[formatable_volumes].v = &device_volumes[i];
-                ++formatable_volumes;
-            }
+    for (i = 0; i < num_volumes; ++i) {
+        Volume* v = &device_volumes[i];
+        if(strcmp("ramdisk", v->fs_type) != 0 && strcmp("mtd", v->fs_type) != 0 && strcmp("emmc", v->fs_type) != 0 && strcmp("bml", v->fs_type) != 0)
+        {
+           sprintf(&mount_menue[mountable_volumes].mount, "mount %s", v->mount_point);
+           sprintf(&mount_menue[mountable_volumes].unmount, "unmount %s", v->mount_point);
+           mount_menue[mountable_volumes].v = &device_volumes[i];
+           ++mountable_volumes;
+           if (is_safe_to_format(v->mount_point)) {
+             sprintf(&format_menue[formatable_volumes].txt, "format %s", v->mount_point);
+             format_menue[formatable_volumes].v = &device_volumes[i];
+             ++formatable_volumes;
+           }
         }
+        else if (strcmp("ramdisk", v->fs_type) != 0 && strcmp("mtd", v->fs_type) == 0 && is_safe_to_format(v->mount_point))
+        {
+           sprintf(&format_menue[formatable_volumes].txt, "format %s", v->mount_point);
+           format_menue[formatable_volumes].v = &device_volumes[i];
+           ++formatable_volumes;
+        }
+    }
 
 
     static char* confirm_format  = "Confirm format?";
