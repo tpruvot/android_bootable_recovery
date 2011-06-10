@@ -521,8 +521,10 @@ int is_safe_to_format(char* name)
 {
     char str[255];
     char* partition;
-    property_get("ro.cwm.forbid_format", str, "/misc,/radio,/bootloader,/recovery,/efs");
+    //property_get("ro.cwm.forbid_format", str, "/misc,/radio,/bootloader,/recovery,/efs");
 
+    //hardcoded change for the moment (defy) only allow to real format cache (ext3)
+    property_get("ro.cwm.forbid_format", str, "/misc,/cid,/boot,/pds,/recovery,/system,/data,/sd-ext");
     LOGI("ro.cwm.forbid_format=%s\n", str);
 
     partition = strtok(str, ", ");
