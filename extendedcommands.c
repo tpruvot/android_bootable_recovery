@@ -511,10 +511,7 @@ int is_safe_to_format(char* name)
 {
     char str[255];
     char* partition;
-    //property_get("ro.cwm.forbid_format", str, "/misc,/radio,/bootloader,/recovery");
-
-    //hardcoded change for the moment (defy)
-    property_get("ro.cwm.forbid_format", str, "/misc,/cid,/boot,/recovery,/system,/data");
+    property_get("ro.cwm.forbid_format", str, "/misc,/radio,/bootloader,/recovery");
     LOGI("ro.cwm.forbid_format=%s\n", str);
 
     partition = strtok(str, ", ");
