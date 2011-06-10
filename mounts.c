@@ -24,13 +24,6 @@
 #include "mounts.h"
 #include "common.h"
 
-struct MountedVolume {
-    const char *device;
-    const char *mount_point;
-    const char *filesystem;
-    const char *flags;
-};
-
 typedef struct {
     MountedVolume *volumes;
     int volumes_allocd;
