@@ -847,8 +847,8 @@ void show_nandroid_menu()
     };
 
     static char* list[] = { "Backup",
-                            "Restore",
-                            "Advanced Restore",
+                            "", //"Restore",
+                            "Restore...",
                             NULL
     };
 
