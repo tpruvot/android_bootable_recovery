@@ -338,8 +338,10 @@ void show_nandroid_restore_menu()
     if (file == NULL)
         return;
 
-    if (confirm_selection("Confirm restore?", "Yes - Restore"))
-        nandroid_restore(file, 1, 1, 1, 1, 1, 0);
+    if (confirm_selection("Confirm restore?", "Yes - Restore")) {
+      //nandroid_restore(file, 1, 1, 1, 1, 1, 0);
+        nandroid_restore(file, 0, 1, 1, 0, 0, 0);
+    }
 }
 
 #ifndef BOARD_UMS_LUNFILE
@@ -847,8 +849,8 @@ void show_nandroid_menu()
     };
 
     static char* list[] = { "Backup",
-                            "", //"Restore",
-                            "Restore...",
+                            "Restore",
+                            "Restore (manual)",
                             NULL
     };
 
@@ -1210,7 +1212,8 @@ void process_volumes() {
     ui_print("in case of error.\n");
 
     nandroid_backup(backup_path);
-    nandroid_restore(backup_path, 1, 1, 1, 1, 1, 0);
+  //nandroid_restore(backup_path, 1, 1, 1, 1, 1, 0);
+    nandroid_restore(backup_path, 0, 1, 1, 0, 0, 0);
     ui_set_show_text(0);
 }
 

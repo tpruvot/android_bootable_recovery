@@ -528,7 +528,7 @@ int nandroid_restore(const char* backup_path, int restore_boot, int restore_syst
         return ret;
 
     sync();
-    ui_set_background(BACKGROUND_ICON_NONE);
+    //ui_set_background(BACKGROUND_ICON_NONE);
     ui_reset_progress();
     ui_print("\nRestore complete!\n");
     return 0;
@@ -560,8 +560,10 @@ int nandroid_main(int argc, char** argv)
     {
         if (argc != 3)
             return nandroid_usage();
-        return nandroid_restore(argv[2], 1, 1, 1, 1, 1, 0);
+        //return nandroid_restore(argv[2], 1, 1, 1, 1, 1, 0);
+
+        //backup_path, int restore_boot, int restore_system, int restore_data, int restore_cache, int restore_sdext, int restore_wimax
+        return nandroid_restore(argv[2], 0, 1, 1, 0, 0, 0);
     }
-    
     return nandroid_usage();
 }
