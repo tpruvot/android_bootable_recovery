@@ -18,7 +18,7 @@ LOCAL_SRC_FILES := \
     mounts.c \
     extendedcommands.c \
     nandroid.c \
-    ../../system/core/toolbox/reboot.c \
+    reboot.c \
     edifyscripting.c \
     setprop.c
 
@@ -59,7 +59,6 @@ else
   LOCAL_SRC_FILES += $(BOARD_CUSTOM_RECOVERY_KEYMAPPING)
 endif
 
-LOCAL_STATIC_LIBRARIES += librebootrecovery
 LOCAL_STATIC_LIBRARIES += libext4_utils libz
 LOCAL_STATIC_LIBRARIES += libminzip libunz libmincrypt
 
