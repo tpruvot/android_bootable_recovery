@@ -727,7 +727,7 @@ int run_script(char* filename)
 {
     struct stat file_info;
     if (0 != stat(filename, &file_info)) {
-        printf("Error executing stat on file: %s\n", filename);
+        printf("File not found: %s\n", filename);
         return 1;
     }
 
@@ -848,7 +848,7 @@ void show_nandroid_advanced_restore_menu()
         return;
     }
 
-    static char* advancedheaders[] = {  "Choose an image to restore",
+    const char* advancedheaders[] = {  "Choose an image to restore",
                                 "",
                                 "Choose an image to restore",
                                 "first. The next menu will",
@@ -857,16 +857,16 @@ void show_nandroid_advanced_restore_menu()
                                 NULL
     };
 
-    char* file = choose_file_menu("/sdcard/clockworkmod/backup/", NULL, advancedheaders);
-    if (file == NULL)
+    char* dir = choose_file_menu("/sdcard/clockworkmod/backup/", NULL, advancedheaders);
+    if (dir == NULL)
         return;
 
-    static char* headers[] = {  "Nandroid Advanced Restore",
+    const char* headers[] = {   "Nandroid Advanced Restore",
                                 "",
                                 NULL
     };
 
-    static char* list[] = { "Restore boot",
+    char* list[] = {        "Restore boot",
                             "Restore system",
                             "Restore data",
                             "Restore cache",
@@ -875,40 +875,62 @@ void show_nandroid_advanced_restore_menu()
                             NULL
     };
 
-    char tmp[PATH_MAX];
+    static char tmp[PATH_MAX];
     if (0 != get_partition_device("pds", tmp)) {
         // disable pds restore option
         list[5] = NULL;
     }
 
+    char* name;
+    struct stat file_info;
+    int p, chosen_item, skip=0;
     static char* confirm_restore  = "Confirm restore?";
 
-    int chosen_item = get_menu_selection(headers, list, 0, 0);
+    for (p=5; p >= 0; p--) {
+        if (list[p] != NULL) {
+            name = list[p] + strlen("Restore ");
+            sprintf(tmp, "%s/%s.img\0", dir, name);
+            memset(&file_info,0,sizeof(file_info));
+            usleep(100000);
+            if (0 != stat(tmp, &file_info)) {
+                //only set NULL at end, else next items are hidden
+                if (!skip)
+                    list[p]=NULL;
+                else
+                    ui_print("%s.img not found.\n",name);
+            } else {
+                ui_print("%s.img is present.\n",name);
+                skip = 1;
+            }
+        }
+    }
+
+    chosen_item = get_menu_selection(headers, list, 0, 0);
     switch (chosen_item)
     {
         case 0:
             if (confirm_selection(confirm_restore, "Yes - Restore boot"))
-                nandroid_restore(file, 1, 0, 0, 0, 0, 0);
+                nandroid_restore(dir, 1, 0, 0, 0, 0, 0);
             break;
         case 1:
             if (confirm_selection(confirm_restore, "Yes - Restore system"))
-                nandroid_restore(file, 0, 1, 0, 0, 0, 0);
+                nandroid_restore(dir, 0, 1, 0, 0, 0, 0);
             break;
         case 2:
             if (confirm_selection(confirm_restore, "Yes - Restore data"))
-                nandroid_restore(file, 0, 0, 1, 0, 0, 0);
+                nandroid_restore(dir, 0, 0, 1, 0, 0, 0);
             break;
         case 3:
             if (confirm_selection(confirm_restore, "Yes - Restore cache"))
-                nandroid_restore(file, 0, 0, 0, 1, 0, 0);
+                nandroid_restore(dir, 0, 0, 0, 1, 0, 0);
             break;
         case 4:
             if (confirm_selection(confirm_restore, "Yes - Restore sd-ext"))
-                nandroid_restore(file, 0, 0, 0, 0, 1, 0);
+                nandroid_restore(dir, 0, 0, 0, 0, 1, 0);
             break;
         case 5:
             if (confirm_selection(confirm_restore, "Yes - Restore pds"))
-                nandroid_restore(file, 0, 0, 0, 0, 0, 1);
+                nandroid_restore(dir, 0, 0, 0, 0, 0, 1);
             break;
     }
 }

@@ -16,6 +16,7 @@
 #include <sys/limits.h>
 #include <dirent.h>
 #include <sys/stat.h>
+#include <sys/statfs.h>
 
 #include <signal.h>
 #include <sys/wait.h>
@@ -388,7 +389,7 @@ int nandroid_restore_partition_extended(const char* backup_path, const char* mou
     char tmp[PATH_MAX];
     sprintf(tmp, "%s/%s.img", backup_path, name);
     struct stat file_info;
-    if (0 != (ret = statfs(tmp, &file_info))) {
+    if (0 != (ret = stat(tmp, &file_info))) {
         ui_print("%s.img not found. Skipping restore of %s.\n", name, mount_point);
         return 0;
     }
