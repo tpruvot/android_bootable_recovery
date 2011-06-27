@@ -44,7 +44,6 @@
 
 int signature_check_enabled = 1;
 int script_assert_enabled = 1;
-static const char *SDCARD_UPDATE_FILE = "/sdcard/update.zip";
 
 void
 toggle_signature_check()
@@ -78,14 +77,12 @@ int install_zip(const char* packagefilepath)
 }
 
 char* INSTALL_MENU_ITEMS[] = {  "choose zip from sdcard",
-                                "apply /sdcard/update.zip",
                                 "toggle signature verification",
                                 "toggle script asserts",
                                 NULL };
 #define ITEM_CHOOSE_ZIP       0
-#define ITEM_APPLY_SDCARD     1
-#define ITEM_SIG_CHECK        2
-#define ITEM_ASSERTS          3
+#define ITEM_SIG_CHECK        1
+#define ITEM_ASSERTS          2
 
 void show_install_update_menu()
 {
@@ -104,12 +101,6 @@ void show_install_update_menu()
             case ITEM_SIG_CHECK:
                 toggle_signature_check();
                 break;
-            case ITEM_APPLY_SDCARD:
-            {
-                if (confirm_selection("Confirm install?", "Yes - Install /sdcard/update.zip"))
-                    install_zip(SDCARD_UPDATE_FILE);
-                break;
-            }
             case ITEM_CHOOSE_ZIP:
                 show_choose_zip_menu();
                 break;

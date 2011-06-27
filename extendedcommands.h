@@ -8,13 +8,7 @@ void
 toggle_script_asserts();
 
 void
-show_choose_zip_menu();
-
-int
-do_nandroid_backup(const char* backup_name);
-
-int
-do_nandroid_restore();
+show_install_update_menu();
 
 void
 show_nandroid_restore_menu();
@@ -51,8 +45,6 @@ void handle_failure(int ret);
 void process_volumes();
 
 int extendedcommand_file_exists();
-
-void show_install_update_menu();
 
 int confirm_selection(const char* title, const char* confirm);
 
