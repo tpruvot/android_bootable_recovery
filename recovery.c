@@ -796,9 +796,11 @@ main(int argc, char **argv) {
         if (strstr(argv[0], "nandroid"))
             return nandroid_main(argc, argv);
         if (strstr(argv[0], "reboot"))
-            return reboot_main(argc, argv);
+            return reboot_wrapper(argv[0]);
+//          return reboot_main(argc, argv);
         if (strstr(argv[0], "poweroff")){
-            return reboot_main(argc, argv);
+            return reboot_wrapper(argv[0]);
+//          return reboot_main(argc, argv);
         }
         if (strstr(argv[0], "setprop"))
             return setprop_main(argc, argv);
