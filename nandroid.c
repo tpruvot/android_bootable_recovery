@@ -233,6 +233,7 @@ int nandroid_backup(const char* backup_path, int backup_recovery, int backup_boo
         return print_and_error("Can't mount /sdcard\n");
     
     int ret;
+    struct stat st;
     struct statfs s;
     if (0 != (ret = statfs("/sdcard", &s)))
         return print_and_error("Unable to stat /sdcard\n");
@@ -257,7 +258,7 @@ int nandroid_backup(const char* backup_path, int backup_recovery, int backup_boo
     Volume *vol = volume_for_path("/pds");
     if (backup_pds)
     {
-        if (vol != NULL && 0 == stat(vol->device, &s))
+        if (vol != NULL && 0 == statfs(vol->device, &s))
         {
             char serialno[PROPERTY_VALUE_MAX];
             ui_print("Backing up PDS...\n");
@@ -285,7 +286,7 @@ int nandroid_backup(const char* backup_path, int backup_recovery, int backup_boo
             return ret;
     }
 
-    if (backup_data && stat("/sdcard/.android_secure", &s))
+    if (backup_data && stat("/sdcard/.android_secure", &st))
     {
         ui_print("No /sdcard/.android_secure found. Skipping backup of applications on external storage.\n");
     }
@@ -299,7 +300,7 @@ int nandroid_backup(const char* backup_path, int backup_recovery, int backup_boo
         return ret;
 
     vol = volume_for_path("/sd-ext");
-    if (backup_sdext && (vol == NULL || 0 != stat(vol->device, &s)))
+    if (backup_sdext && (vol == NULL || 0 != statfs(vol->device, &s)))
     {
         ui_print("No sd-ext found. Skipping backup of sd-ext.\n");
     }
