@@ -494,7 +494,7 @@ int nandroid_restore(const char* backup_path, int restore_boot, int restore_syst
        __system(tmp);
     }
     if (!restore_sdext) {
-       sprintf(tmp, "cd %s && cat md5 | grep -v sdext > md5_filtered && cp md5_filtered md5", backup_path);
+       sprintf(tmp, "cd %s && cat md5 | grep -v sd-ext > md5_filtered && cp md5_filtered md5", backup_path);
        __system(tmp);
     }
     if (!restore_pds) {
@@ -504,6 +504,7 @@ int nandroid_restore(const char* backup_path, int restore_boot, int restore_syst
     sprintf(tmp, "cd %s && md5sum -c md5", backup_path);
     int ret = __system(tmp);
     sprintf(tmp, "cd %s && rm md5", backup_path);
+    sprintf(tmp, "cd %s && rm md5_filtered", backup_path);
     __system(tmp);
     if(ret)
         return print_and_error("MD5 mismatch!\n");
