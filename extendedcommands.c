@@ -1012,12 +1012,12 @@ void show_advanced_menu()
                             "Wipe Dalvik Cache",
                             "Wipe Battery Stats",
                             "Report Error",
+                            "Key Test",
+                            "Show Log",
 #ifdef BOARD_HAS_SMALL_RECOVERY
                             "Kill adbd",
                             "Start adbd",
-                            "Show Log",
 #else
-                            "Key Test",
                             "Partition SD Card",
                             "Fix Permissions",
 # ifdef BOARD_HAS_SDCARD_INTERNAL
@@ -1065,33 +1065,6 @@ void show_advanced_menu()
                 handle_failure(1);
                 break;
             }
-#ifdef BOARD_HAS_SMALL_RECOVERY
-            case 4:
-            {
-                __system("killall adbd.root");
-                __system("killall adbd");
-                LOGI("\nkilling adbd...\n");
-                __system("ps w | grep adbd | grep -v grep >> /tmp/recovery.log");
-                ui_printlogtail(2);
-                break;
-            }
-            case 5:
-            {
-                __system("echo 'msc_adb' > /dev/usb_device_mode");
-                if (stat(ADBD_PATH, &info) == 0) {
-                    __system(ADBD_PATH " &");
-                    ui_print("adbd started.\n");
-                } else {
-                    LOGW("%s not found.\n", ADBD_PATH);
-                }
-                break;
-            }
-            case 6:
-            {
-                ui_printlogtail(20);
-                break;
-            }
-#else
             case 4:
             {
                 ui_print("Outputting key codes.\n");
@@ -1109,6 +1082,33 @@ void show_advanced_menu()
                 break;
             }
             case 5:
+            {
+                ui_printlogtail(20);
+                break;
+            }
+#ifdef BOARD_HAS_SMALL_RECOVERY
+            case 6:
+            {
+                __system("killall adbd.root");
+                __system("killall adbd");
+                LOGI("\nkilling adbd...\n");
+                __system("ps w | grep adbd | grep -v grep >> /tmp/recovery.log");
+                ui_printlogtail(2);
+                break;
+            }
+            case 7:
+            {
+                __system("echo 'msc_adb' > /dev/usb_device_mode");
+                if (stat(ADBD_PATH, &info) == 0) {
+                    __system(ADBD_PATH " &");
+                    ui_print("adbd started.\n");
+                } else {
+                    LOGW("%s not found.\n", ADBD_PATH);
+                }
+                break;
+            }
+#else
+            case 6:
             {
                 static char* ext_sizes[] = { "128M",
                                              "256M",
@@ -1151,7 +1151,7 @@ void show_advanced_menu()
                     ui_print("An error occured while partitioning your SD Card. Please see /tmp/recovery.log for more details.\n");
                 break;
             }
-            case 6:
+            case 7:
             {
                 ensure_path_mounted("/system");
                 ensure_path_mounted("/data");
@@ -1160,7 +1160,7 @@ void show_advanced_menu()
                 ui_print("Done!\n");
                 break;
             }
-            case 7:
+            case 8:
             {
                 static char* ext_sizes[] = { "128M",
                                              "256M",
