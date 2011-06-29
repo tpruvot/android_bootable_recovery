@@ -49,3 +49,7 @@ int extendedcommand_file_exists();
 int confirm_selection(const char* title, const char* confirm);
 
 int run_and_remove_extendedcommand();
+
+int is_safe_to_format(char* name);
+
+int is_path_mounted(const char* path);

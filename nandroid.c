@@ -4,7 +4,6 @@
 #include <getopt.h>
 #include <limits.h>
 #include <linux/input.h>
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/reboot.h>
@@ -30,6 +29,7 @@
 #include "minzip/DirUtil.h"
 #include "roots.h"
 #include "recovery_ui.h"
+#include "libcrecovery/common.h"
 
 #include "../../external/yaffs2/yaffs2/utils/mkyaffs2image.h"
 #include "../../external/yaffs2/yaffs2/utils/unyaffs.h"
@@ -51,11 +51,11 @@ void nandroid_generate_timestamp_path(const char* backup_path)
     {
         struct timeval tp;
         gettimeofday(&tp, NULL);
-        sprintf(backup_path, "/sdcard/clockworkmod/backup/%d", tp.tv_sec);
+        sprintf((char*) backup_path, "/sdcard/clockworkmod/backup/%d", (int) tp.tv_sec);
     }
     else
     {
-        strftime(backup_path, PATH_MAX, "/sdcard/clockworkmod/backup/%F.%H.%M.%S", tmp);
+        strftime((char*) backup_path, PATH_MAX, "/sdcard/clockworkmod/backup/%F.%H.%M.%S", tmp);
     }
 }
 
@@ -74,7 +74,7 @@ static void yaffs_callback(const char* filename)
     char tmp[PATH_MAX];
     strcpy(tmp, justfile);
     if (tmp[strlen(tmp) - 1] == '\n')
-        tmp[strlen(tmp) - 1] = NULL;
+        tmp[strlen(tmp) - 1] = '\0';
     if (strlen(tmp) < 30)
         ui_print("%s", tmp);
     yaffs_files_count++;
@@ -102,7 +102,7 @@ typedef void (*file_event_callback)(const char* filename);
 typedef int (*nandroid_backup_handler)(const char* backup_path, const char* backup_file_image, int callback);
 
 static int mkyaffs2image_wrapper(const char* backup_path, const char* backup_file_image, int callback) {
-    return mkyaffs2image(backup_path, backup_file_image, 0, callback ? yaffs_callback : NULL);
+    return mkyaffs2image((char*) backup_path, (char*) backup_file_image, 0, callback ? (mkyaffs2image_callback) yaffs_callback : NULL);
 }
 
 static int tar_compress_wrapper(const char* backup_path, const char* backup_file_image, int callback) {
@@ -119,7 +119,7 @@ static int tar_compress_wrapper(const char* backup_path, const char* backup_file
     }
 
     while (fgets(tmp, PATH_MAX, fp) != NULL) {
-        tmp[PATH_MAX - 1] = NULL;
+        tmp[PATH_MAX - 1] = '\0';
         if (callback)
             yaffs_callback(tmp);
     }
@@ -134,7 +134,7 @@ static nandroid_backup_handler get_backup_handler(const char *backup_path) {
         return NULL;
     }
     scan_mounted_volumes();
-    MountedVolume *mv = find_mounted_volume_by_mount_point(v->mount_point);
+    MountedVolume *mv = (MountedVolume*) find_mounted_volume_by_mount_point(v->mount_point);
     if (mv == NULL) {
         ui_print("Unable to find mounted volume: %s\n", v->mount_point);
         return NULL;
@@ -200,7 +200,7 @@ int nandroid_backup_partition(const char* backup_path, const char* root) {
     Volume *vol = volume_for_path(root);
     // make sure the volume exists before attempting anything...
     if (vol == NULL || vol->fs_type == NULL)
-        return NULL;
+        return 0;
 
     // see if we need a raw backup (mtd)
     char tmp[PATH_MAX];
@@ -330,7 +330,7 @@ static void ensure_directory(const char* dir) {
 typedef int (*nandroid_restore_handler)(const char* backup_file_image, const char* backup_path, int callback);
 
 static int unyaffs_wrapper(const char* backup_file_image, const char* backup_path, int callback) {
-    return unyaffs(backup_file_image, backup_path, callback);
+    return unyaffs((char*) backup_file_image, (char*) backup_path, (unyaffs_callback) callback);
 }
 
 static int tar_extract_wrapper(const char* backup_file_image, const char* backup_path, int callback) {
@@ -359,7 +359,7 @@ static nandroid_restore_handler get_restore_handler(const char *backup_path) {
         return NULL;
     }
     scan_mounted_volumes();
-    MountedVolume *mv = find_mounted_volume_by_mount_point(v->mount_point);
+    MountedVolume *mv = (MountedVolume*) find_mounted_volume_by_mount_point(v->mount_point);
     if (mv == NULL) {
         ui_print("Unable to find mounted volume: %s\n", v->mount_point);
         return NULL;

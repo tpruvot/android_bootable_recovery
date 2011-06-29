@@ -24,6 +24,8 @@
 #include "mounts.h"
 #include "common.h"
 
+extern int __system(const char *command);
+
 typedef struct {
     MountedVolume *volumes;
     int volumes_allocd;
