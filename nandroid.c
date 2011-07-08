@@ -299,13 +299,13 @@ int nandroid_backup(const char* backup_path, int backup_recovery, int backup_boo
     if (backup_cache && (ret = nandroid_backup_partition_extended(backup_path,"/cache", 0)))
 	return ret;
 
-    if (backup_data && stat("/sdcard/Android", &s))
+    if (backup_data && stat("/sdcard/Android", &st))
     {
         ui_print("No /sdcard/Android found. Skipping backup of application files on external storage.\n");
     }
     else
     {
-        if (backup_data && (ret = nandroid_backup_partition_extended(backup_path, "/sdcard/Android", 0))i)
+        if (backup_data && (ret = nandroid_backup_partition_extended(backup_path, "/sdcard/Android", 0)))
             return ret;
     }
 
