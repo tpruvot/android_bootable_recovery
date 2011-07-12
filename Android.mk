@@ -25,7 +25,7 @@ LOCAL_MODULE := recovery
 
 LOCAL_FORCE_STATIC_EXECUTABLE := true
 
-RECOVERY_VERSION := ClockworkMod Recovery v4.0.0.8
+RECOVERY_VERSION := ClockworkMod Recovery v4.0.0.9
 LOCAL_CFLAGS += -DRECOVERY_VERSION="$(RECOVERY_VERSION)"
 
 LOCAL_CFLAGS += -DRECOVERY_SUFFIX="-defy"
@@ -142,6 +142,7 @@ LOCAL_STATIC_LIBRARIES := libmincrypt libcutils libstdc++ libc
 
 include $(BUILD_EXECUTABLE)
 
+include $(commands_recovery_local_path)/dedupe/Android.mk
 
 include $(commands_recovery_local_path)/bmlutils/Android.mk
 include $(commands_recovery_local_path)/flashutils/Android.mk
