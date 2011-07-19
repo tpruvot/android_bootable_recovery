@@ -207,7 +207,7 @@ int ensure_path_mounted(const char* path) {
     if (mv) {
         // volume is already mounted
 
-        #ifdef NEVER_UMOUNT_SYSTEM
+        #ifdef BOARD_NEVER_UMOUNT_SYSTEM
         if (strcmp(v->mount_point, "/system") == 0) {
             __system("mount -o remount,rw /system");
             __system("echo 0 > /sys/class/leds/red/brightness");
@@ -259,6 +259,13 @@ int ensure_path_unmounted(const char* path) {
     if (volume_for_path("/sdcard") == NULL && (strstr(path, "/sdcard") == path || strstr(path, "/data") == path)) {
         return 0;
     }
+
+    #ifdef BOARD_NEVER_UMOUNT_SYSTEM
+    if (strcmp(path, "/system") == 0) {
+        __system("sync");
+        return 0;
+    }
+    #endif
 
     Volume* v = volume_for_path(path);
     if (v == NULL) {
@@ -324,7 +331,7 @@ int format_volume(const char* volume) {
     rmrf_format=1;
     #endif
 
-    #ifdef NEVER_UMOUNT_SYSTEM
+    #ifdef BOARD_NEVER_UMOUNT_SYSTEM
     if (strcmp(v->mount_point, "/system") == 0) {
         rmrf_format=1;
     }

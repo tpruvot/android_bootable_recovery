@@ -52,3 +52,5 @@ int run_and_remove_extendedcommand();
 int is_safe_to_format(char* name);
 
 int is_path_mounted(const char* path);
+
+int is_path_mounted_readonly(const char* path);

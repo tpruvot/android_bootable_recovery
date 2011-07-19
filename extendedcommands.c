@@ -596,8 +596,15 @@ void show_partition_menu()
         {
             MountMenuEntry* e = &mount_menue[i];
             Volume* v = e->v;
-            if(is_path_mounted(v->mount_point))
+            if(is_path_mounted(v->mount_point)) {
                 options[i] = e->unmount;
+                #ifdef BOARD_NEVER_UMOUNT_SYSTEM
+                if (is_path_mounted_readonly(v->mount_point)) {
+                    printf("%s is read only");
+                    options[i] = e->mount;
+                }
+                #endif
+            }
             else
                 options[i] = e->mount;
         }
@@ -1057,7 +1064,7 @@ void show_advanced_menu()
             {
                 if (confirm_selection( "Confirm wipe?", "Yes - Wipe Battery Stats"))
                     wipe_battery_stats();
-		ui_print("Battery Stats wiped.\n");
+                ui_print("Battery Stats wiped.\n");
                 break;
             }
             case 3:
@@ -1356,6 +1363,30 @@ int is_path_mounted(const char* path) {
     }
     return 0;
 }
+
+int is_path_mounted_readonly(const char* path) {
+    Volume* v = volume_for_path(path);
+    if (v == NULL) {
+        return 0;
+    }
+
+    int result;
+    result = scan_mounted_volumes();
+    if (result < 0) {
+        LOGE("failed to scan mounted volumes\n");
+        return 0;
+    }
+
+    const MountedVolume* mv = find_mounted_volume_by_mount_point(v->mount_point);
+    if (mv) {
+        // volume is mounted
+        if (strlen(mv->flags) >=2 && mv->flags[0]=='r' && mv->flags[1]=='o') {
+            return 1;
+        }
+    }
+    return 0;
+}
+
 
 int has_datadata() {
     Volume *vol = volume_for_path("/datadata");
