@@ -415,12 +415,10 @@ int confirm_selection(const char* title, const char* confirm)
 
 int format_unknown_device(const char *device, const char* path, const char *fs_type)
 {
-    int do_format = true;
+    int do_format = is_safe_to_format((char*) path);
 
 #ifdef NEVER_FORMAT_PARTITIONS
     do_format = 0;
-#else
-    do_format = is_safe_to_format((char*) path);
 #endif
 
     if (do_format) {
@@ -520,7 +518,8 @@ int is_safe_to_format(char* name)
 
     //hardcoded change for the moment (defy) only allow to real format cache (ext3)
     property_get("ro.cwm.forbid_format", str, "/misc,/cid,/boot,/pds,/recovery,/system,/data,/sd-ext");
-    LOGI("ro.cwm.forbid_format=%s\n", str);
+
+    //LOGI("ro.cwm.forbid_format=%s\n", str);
 
     partition = strtok(str, ", ");
     while (partition != NULL) {

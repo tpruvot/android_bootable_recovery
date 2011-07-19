@@ -207,12 +207,13 @@ int ensure_path_mounted(const char* path) {
     if (mv) {
         // volume is already mounted
 
-#ifdef NEVER_UMOUNT_SYSTEM
-    if (strcmp(v->mount_point, "/system") == 0) {
-        __system("mount -o remount,rw /system");
-        __system("echo 0 > /sys/class/leds/red/brightness");
-    }
-#endif
+        #ifdef NEVER_UMOUNT_SYSTEM
+        if (strcmp(v->mount_point, "/system") == 0) {
+            __system("mount -o remount,rw /system");
+            __system("echo 0 > /sys/class/leds/red/brightness");
+        }
+        #endif
+
         return 0;
     }
 
@@ -319,15 +320,15 @@ int format_volume(const char* volume) {
     // force the "rm -rf" method
     int rmrf_format=0;
 
-#ifdef NEVER_FORMAT_PARTITIONS
+    #ifdef NEVER_FORMAT_PARTITIONS
     rmrf_format=1;
-#endif
+    #endif
 
-#ifdef NEVER_UMOUNT_SYSTEM
+    #ifdef NEVER_UMOUNT_SYSTEM
     if (strcmp(v->mount_point, "/system") == 0) {
         rmrf_format=1;
     }
-#endif
+    #endif
 
     if (rmrf_format) {
         // use directly the "rm -rf" method

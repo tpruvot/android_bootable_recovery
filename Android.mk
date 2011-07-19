@@ -25,9 +25,10 @@ LOCAL_MODULE := recovery
 
 LOCAL_FORCE_STATIC_EXECUTABLE := true
 
-RECOVERY_VERSION := ClockworkMod Recovery v4.0.1.0
+RECOVERY_VERSION := ClockworkMod Recovery v4.0.1.1
 LOCAL_CFLAGS += -DRECOVERY_VERSION="$(RECOVERY_VERSION)"
 
+# Version suffix, only displayed on screen in headers
 LOCAL_CFLAGS += -DRECOVERY_SUFFIX="-defy"
 
 RECOVERY_API_VERSION := 2
