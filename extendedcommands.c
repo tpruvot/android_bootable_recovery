@@ -1057,6 +1057,7 @@ void show_advanced_menu()
             {
                 if (confirm_selection( "Confirm wipe?", "Yes - Wipe Battery Stats"))
                     wipe_battery_stats();
+		ui_print("Battery Stats wiped.\n");
                 break;
             }
             case 3:
