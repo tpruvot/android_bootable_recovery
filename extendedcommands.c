@@ -600,7 +600,7 @@ void show_partition_menu()
                 options[i] = e->unmount;
                 #ifdef BOARD_NEVER_UMOUNT_SYSTEM
                 if (is_path_mounted_readonly(v->mount_point)) {
-                    printf("%s is read only");
+                    printf("%s is read only", v->mount_point);
                     options[i] = e->mount;
                 }
                 #endif

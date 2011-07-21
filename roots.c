@@ -263,7 +263,9 @@ int ensure_path_unmounted(const char* path) {
     #ifdef BOARD_NEVER_UMOUNT_SYSTEM
     if (strcmp(path, "/system") == 0) {
         __system("sync");
-        return 0;
+
+    // comment to test remount rw
+    //return 0;
     }
     #endif
 
