@@ -25,7 +25,14 @@ LOCAL_MODULE := recovery
 
 LOCAL_FORCE_STATIC_EXECUTABLE := true
 
-RECOVERY_VERSION := ClockworkMod Recovery v4.0.1.4
+ifdef I_AM_KOUSH
+RECOVERY_NAME := ClockworkMod Recovery
+else
+RECOVERY_NAME := CWM-based Recovery
+endif
+
+RECOVERY_VERSION := $(RECOVERY_NAME) v4.0.1.4
+
 LOCAL_CFLAGS += -DRECOVERY_VERSION="$(RECOVERY_VERSION)"
 
 # Version suffix, only displayed on screen in headers
