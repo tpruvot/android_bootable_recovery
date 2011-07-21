@@ -500,8 +500,9 @@ int format_unknown_device(const char *device, const char* path, const char *fs_t
 //#define MMC_COUNT 2
 
 typedef struct {
-    char mount[255];
-    char unmount[255];
+    char mount[80];
+    char unmount[80];
+    char remount[80];
     Volume* v;
 } MountMenuEntry;
 
@@ -568,6 +569,7 @@ void show_partition_menu()
         {
            sprintf(mount_menue[mountable_volumes].mount, "mount %s", v->mount_point);
            sprintf(mount_menue[mountable_volumes].unmount, "unmount %s", v->mount_point);
+           sprintf(mount_menue[mountable_volumes].remount, "remount %s", v->mount_point);
            mount_menue[mountable_volumes].v = &device_volumes[i];
            ++mountable_volumes;
            if (is_safe_to_format((char*) v->mount_point)) {
@@ -601,7 +603,7 @@ void show_partition_menu()
                 #ifdef BOARD_NEVER_UMOUNT_SYSTEM
                 if (is_path_mounted_readonly(v->mount_point)) {
                     printf("%s is read only", v->mount_point);
-                    options[i] = e->mount;
+                    options[i] = e->remount;
                 }
                 #endif
             }
@@ -633,6 +635,16 @@ void show_partition_menu()
 
             if (is_path_mounted(v->mount_point))
             {
+
+            #ifdef BOARD_NEVER_UMOUNT_SYSTEM
+                if (0 == strcmp(v->mount_point, "/system")
+                 && is_path_mounted_readonly(v->mount_point)
+                ) {
+                   if (0 != ensure_path_mounted(v->mount_point))
+                    ui_print("Error re-mounting %s!\n", v->mount_point);
+                }
+                else
+            #endif
                 if (0 != ensure_path_unmounted(v->mount_point))
                     ui_print("Error unmounting %s!\n", v->mount_point);
             }
@@ -1380,7 +1392,7 @@ int is_path_mounted_readonly(const char* path) {
     const MountedVolume* mv = find_mounted_volume_by_mount_point(v->mount_point);
     if (mv) {
         // volume is mounted
-        if (strlen(mv->flags) >=2 && mv->flags[0]=='r' && mv->flags[1]=='o') {
+        if (strlen(mv->flags) >=2 && 0 == strncmp(mv->flags,"ro",2) ) {
             return 1;
         }
     }
