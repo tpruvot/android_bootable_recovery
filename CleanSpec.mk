@@ -52,7 +52,6 @@ $(call add-clean-step, rm -rf $(PRODUCT_OUT)/obj/EXECUTABLES/recovery_intermedia
 
 ifeq ($(BOARD_USES_BOOTMENU),true)
   $(call add-clean-step, rm -r $(PRODUCT_OUT)/symbols/system/bootmenu/recovery/sbin/recovery)
-  $(call add-clean-step, rm -r $(PRODUCT_OUT)/system/bootmenu/recovery/sbin/recovery)
 endif
 
 # ************************************************

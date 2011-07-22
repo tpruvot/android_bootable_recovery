@@ -637,8 +637,8 @@ void show_partition_menu()
             {
 
             #ifdef BOARD_NEVER_UMOUNT_SYSTEM
-                if (0 == strcmp(v->mount_point, "/system")
-                 && is_path_mounted_readonly(v->mount_point)
+                if (is_path_mounted_readonly(v->mount_point)
+                 && 0 == strcmp(v->mount_point, "/system")
                 ) {
                    if (0 != ensure_path_mounted(v->mount_point))
                     ui_print("Error re-mounting %s!\n", v->mount_point);
