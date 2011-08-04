@@ -42,6 +42,8 @@ void create_fstab();
 
 int has_datadata();
 
+int has_emmc();
+
 void handle_failure(int ret);
 
 void process_volumes();

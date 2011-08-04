@@ -1370,8 +1370,12 @@ void create_fstab()
 
     write_fstab_root("/cache", file);
     write_fstab_root("/data", file);
-    write_fstab_root("/datadata", file);
-    write_fstab_root("/emmc", file);
+    if (has_datadata()) {
+        write_fstab_root("/datadata", file);
+    }
+    if (has_emmc()) {
+        write_fstab_root("/emmc", file);
+    }
     write_fstab_root("/system", file);
     write_fstab_root("/devtree", file);
     write_fstab_root("/logo", file);
@@ -1514,6 +1518,11 @@ int is_path_mounted_readonly(const char* path) {
 
 int has_datadata() {
     Volume *vol = volume_for_path("/datadata");
+    return vol != NULL;
+}
+
+int has_emmc() {
+    Volume *vol = volume_for_path("/emmc");
     return vol != NULL;
 }
 
