@@ -36,7 +36,7 @@ RECOVERY_VERSION := $(RECOVERY_NAME) v4.0.1.6
 LOCAL_CFLAGS += -DRECOVERY_VERSION="$(RECOVERY_VERSION)"
 
 # Version suffix, only displayed on screen in headers
-LOCAL_CFLAGS += -DRECOVERY_SUFFIX="-defy"
+LOCAL_CFLAGS += -DRECOVERY_SUFFIX="-$(TARGET_BOOTLOADER_BOARD_NAME)"
 
 ifeq ($(BOARD_USES_BOOTMENU),true)
     LOCAL_MODULE_PATH := $(PRODUCT_OUT)/system/bootmenu/recovery/sbin
