@@ -952,6 +952,13 @@ void show_nandroid_advanced_backup_menu(const char* backup_path)
     }
 }
 
+int file_exists(char * file)
+{
+    struct stat file_info;
+    memset(&file_info,0,sizeof(file_info));
+    return (int) (0 == stat(file, &file_info));
+}
+
 void show_nandroid_advanced_restore_menu()
 {
     if (ensure_path_mounted("/sdcard") != 0) {
@@ -993,7 +1000,6 @@ void show_nandroid_advanced_restore_menu()
     }
 
     char* name;
-    struct stat file_info;
     int p, chosen_item, skip=0;
     static char* confirm_restore  = "Confirm restore?";
 
@@ -1001,16 +1007,18 @@ void show_nandroid_advanced_restore_menu()
         if (list[p] != NULL) {
             name = list[p] + strlen("Restore ");
             sprintf(tmp, "%s/%s.img", dir, name);
-            memset(&file_info,0,sizeof(file_info));
-            usleep(100000);
-            if (0 != stat(tmp, &file_info)) {
+            usleep(10000);
+            if (! file_exists(tmp)) {
+                sprintf(tmp, "%s/%s.ext3.tar", dir, name);
+            }
+            if (! file_exists(tmp)) {
                 //only set NULL at end, else next items are hidden
                 if (!skip)
                     list[p]=NULL;
                 else
-                    ui_print("%s.img not found.\n",name);
+                    ui_print("%s not found.\n",name);
             } else {
-                ui_print("%s.img is present.\n",name);
+                ui_print("%s is present.\n",tmp);
                 skip = 1;
             }
         }
