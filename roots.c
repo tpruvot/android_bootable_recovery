@@ -282,7 +282,9 @@ int ensure_path_unmounted(const char* path) {
         if (strstr(path, "/sdcard") == path && is_data_media()) {
             return ensure_path_unmounted("/data");
         }
-        LOGE("unknown volume for path [%s]\n", path);
+        if (strcmp(path, "/sd-ext") == 0) {
+           LOGE("unknown volume for path [%s]\n", path);
+        }
         return -1;
     }
     if (strcmp(v->fs_type, "ramdisk") == 0) {

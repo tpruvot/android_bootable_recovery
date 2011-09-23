@@ -690,7 +690,9 @@ wipe_data(int confirm) {
     if (has_datadata()) {
         erase_volume("/datadata");
     }
+#ifdef WIPE_DATA_ERASE_SDEXT
     erase_volume("/sd-ext");
+#endif
     erase_volume("/sdcard/.android_secure");
     ui_print("Data wipe complete.\n");
 }

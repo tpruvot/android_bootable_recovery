@@ -56,6 +56,8 @@ BOARD_RECOVERY_DEFINES := \
     BOARD_UMS_LUNFILE BOARD_RECOVERY_ALWAYS_WIPES \
     BOARD_RECOVERY_HANDLES_MOUNT BOARD_NEVER_UMOUNT_SYSTEM \
 
+# not enabled : WIPE_DATA_ERASE_SDEXT
+
 $(foreach board_define,$(BOARD_RECOVERY_DEFINES), \
   $(if $($(board_define)), \
     $(eval LOCAL_CFLAGS += -D$(board_define)=\"$($(board_define))\") \
