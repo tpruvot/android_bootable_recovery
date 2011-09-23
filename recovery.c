@@ -967,6 +967,9 @@ main(int argc, char **argv) {
         }
     }
 
+    ui_print("WARNING: This is the first Recovery v5\n"
+             "         which use TAR format to make backups !\n");
+
     if (status != INSTALL_SUCCESS && !is_user_initiated_recovery) ui_set_background(BACKGROUND_ICON_ERROR);
     if (status != INSTALL_SUCCESS || ui_text_visible()) {
         prompt_and_wait();
