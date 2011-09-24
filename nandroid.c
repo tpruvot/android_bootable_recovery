@@ -560,8 +560,7 @@ int nandroid_restore(const char* backup_path, int restore_boot, int restore_syst
     }
     sprintf(tmp, "cd %s && md5sum -c md5", backup_path);
     int ret = __system(tmp);
-    sprintf(tmp, "cd %s && rm md5", backup_path);
-    sprintf(tmp, "cd %s && rm md5_filtered", backup_path);
+    sprintf(tmp, "cd %s && rm -f md5 md5_filtered", backup_path);
     __system(tmp);
     if(ret)
         return print_and_error("MD5 mismatch!\n");
