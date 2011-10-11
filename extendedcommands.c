@@ -915,38 +915,38 @@ void show_nandroid_advanced_backup_menu(const char* backup_path)
     switch (chosen_item)
     {
         case 0:
-            if (confirm_selection(confirm_backup, "Yes - Backup recovery"))
-                nandroid_backup(backup_path, 1, 0, 0, 0, 0, 0, 0);
+            // Backup recovery
+            nandroid_backup(backup_path, 1, 0, 0, 0, 0, 0, 0);
             show_nandroid_advanced_backup_menu(backup_path);
             break;
         case 1:
-            if (confirm_selection(confirm_backup, "Yes - Backup boot"))
-                nandroid_backup(backup_path, 0, 1, 0, 0, 0, 0, 0);
+            // Backup boot
+            nandroid_backup(backup_path, 0, 1, 0, 0, 0, 0, 0);
             show_nandroid_advanced_backup_menu(backup_path);
             break;
         case 2:
-            if (confirm_selection(confirm_backup, "Yes - Backup system"))
-                nandroid_backup(backup_path, 0, 0, 1, 0, 0, 0, 0);
+            // Backup system
+            nandroid_backup(backup_path, 0, 0, 1, 0, 0, 0, 0);
             show_nandroid_advanced_backup_menu(backup_path);
             break;
         case 3:
-            if (confirm_selection(confirm_backup, "Yes - Backup data"))
-                nandroid_backup(backup_path, 0, 0, 0, 1, 0, 0, 0);
+            // Backup data
+            nandroid_backup(backup_path, 0, 0, 0, 1, 0, 0, 0);
             show_nandroid_advanced_backup_menu(backup_path);
             break;
         case 4:
-            if (confirm_selection(confirm_backup, "Yes - Backup cache"))
-                nandroid_backup(backup_path, 0, 0, 0, 0, 1, 0, 0);
+            // Backup cache
+            nandroid_backup(backup_path, 0, 0, 0, 0, 1, 0, 0);
             show_nandroid_advanced_backup_menu(backup_path);
             break;
         case 5:
-            if (confirm_selection(confirm_backup, "Yes - Backup sd-ext"))
-                nandroid_backup(backup_path, 0, 0, 0, 0, 0, 1, 0);
+            // Backup sd-ext
+            nandroid_backup(backup_path, 0, 0, 0, 0, 0, 1, 0);
             show_nandroid_advanced_backup_menu(backup_path);
             break;
         case 6:
-            if (confirm_selection(confirm_backup, "Yes - Backup pds"))
-                nandroid_backup(backup_path, 0, 0, 0, 0, 0, 0, 1);
+            // Backup pds
+            nandroid_backup(backup_path, 0, 0, 0, 0, 0, 0, 1);
             show_nandroid_advanced_backup_menu(backup_path);
             break;
     }
