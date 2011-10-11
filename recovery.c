@@ -982,7 +982,10 @@ main(int argc, char **argv) {
         }
     }
 
-    if (status != INSTALL_SUCCESS && !is_user_initiated_recovery) ui_set_background(BACKGROUND_ICON_ERROR);
+    if (status != INSTALL_SUCCESS && !is_user_initiated_recovery) {
+        ui_set_show_text(1);
+        ui_set_background(BACKGROUND_ICON_ERROR);
+    }
     if (status != INSTALL_SUCCESS || ui_text_visible()) {
         if (!ui_text_visible()) {
             ui_set_show_text(1);
