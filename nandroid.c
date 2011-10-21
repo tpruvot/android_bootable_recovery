@@ -86,7 +86,7 @@ static void yaffs_callback(const char* filename)
 static void compute_directory_stats(const char* directory)
 {
     char tmp[PATH_MAX];
-    sprintf(tmp, "find %s | wc -l > /tmp/dircount", directory);
+    sprintf(tmp, "find '%s' | wc -l > /tmp/dircount", directory);
     __system(tmp);
     char count_text[100];
     FILE* f = fopen("/tmp/dircount", "r");
@@ -110,9 +110,9 @@ static int mkyaffs2image_wrapper(const char* backup_path, const char* backup_fil
 static int tar_compress_wrapper(const char* backup_path, const char* backup_file_image, int callback) {
     char tmp[PATH_MAX];
     if (strcmp(backup_path, "/data") == 0 && volume_for_path("/sdcard") == NULL)
-      sprintf(tmp, "cd $(dirname %s) ; tar cvf %s.tar --exclude 'media' $(basename %s) ; exit $?", backup_path, backup_file_image, backup_path);
+      sprintf(tmp, "cd $(dirname %s) ; tar cvf '%s.tar' --exclude 'media' $(basename %s) ; exit $?", backup_path, backup_file_image, backup_path);
     else
-      sprintf(tmp, "cd $(dirname %s) ; tar cvf %s.tar $(basename %s) ; exit $?", backup_path, backup_file_image, backup_path);
+      sprintf(tmp, "cd $(dirname %s) ; tar cvf '%s.tar' $(basename %s) ; exit $?", backup_path, backup_file_image, backup_path);
 
     FILE *fp = __popen(tmp, "r");
     if (fp == NULL) {
@@ -200,7 +200,7 @@ int nandroid_backup_partition_extended(const char* backup_path, const char* moun
         return ret;
     }
     ui_print("Generating %s md5 sum...\n", tmp_name);
-    sprintf(tmp, "nandroid-md5.sh %s %s", backup_path, tmp_name);
+    sprintf(tmp, "nandroid-md5.sh '%s' %s", backup_path, tmp_name);
     if (__system(tmp))
         ui_print("Error while generating %s md5 sum!\n", tmp_name);
     return 0;
@@ -226,7 +226,7 @@ int nandroid_backup_partition(const char* backup_path, const char* root) {
             return ret;
         }
         ui_print("Generating %s md5 sum...\n", name);
-        sprintf(tmp, "nandroid-md5.sh %s %s", backup_path, name);
+        sprintf(tmp, "nandroid-md5.sh '%s' %s", backup_path, name);
         if (__system(tmp))
             ui_print("Error while generating %s md5 sum!\n", name);
         return 0;
@@ -277,7 +277,7 @@ int nandroid_backup(const char* backup_path, int backup_recovery, int backup_boo
             sprintf(tmp, "%s/pds.%s.img", backup_path, serialno);
             ret = backup_raw_partition(vol->fs_type, vol->device, tmp);
             ui_print("Generating pds.%s md5 sum...\n", serialno);
-            sprintf(tmp, "nandroid-md5.sh %s pds.%s", backup_path, serialno);
+            sprintf(tmp, "nandroid-md5.sh '%s' 'pds.%s'", backup_path, serialno);
             if (__system(tmp))
                 ui_print("Error while generating pds.%s md5 sum!\n", serialno);
             if (0 != ret)
@@ -345,7 +345,7 @@ static int unyaffs_wrapper(const char* backup_file_image, const char* backup_pat
 
 static int tar_extract_wrapper(const char* backup_file_image, const char* backup_path, int callback) {
     char tmp[PATH_MAX];
-    sprintf(tmp, "cd $(dirname %s) ; tar xvf %s ; exit $?", backup_path, backup_file_image);
+    sprintf(tmp, "cd $(dirname %s) ; tar xvf '%s' ; exit $?", backup_path, backup_file_image);
 
     char path[PATH_MAX];
     FILE *fp = __popen(tmp, "r");
@@ -532,35 +532,35 @@ int nandroid_restore(const char* backup_path, int restore_boot, int restore_syst
     char tmp[PATH_MAX];
 
     ui_print("Checking MD5 sums...\n");
-    sprintf(tmp, "cd %s && cat *.md5 > md5", backup_path);
+    sprintf(tmp, "cd '%s' && cat *.md5 > md5", backup_path);
     __system(tmp);
     if (!restore_boot) {
-       sprintf(tmp, "cd %s && cat md5 | grep -v boot > md5_filtered && cp md5_filtered md5", backup_path);
+       sprintf(tmp, "cd '%s' && cat md5 | grep -v boot > md5_filtered && cp md5_filtered md5", backup_path);
        __system(tmp);
     }
     if (!restore_system) {
-       sprintf(tmp, "cd %s && cat md5 | grep -v system > md5_filtered && cp md5_filtered md5", backup_path);
+       sprintf(tmp, "cd '%s' && cat md5 | grep -v system > md5_filtered && cp md5_filtered md5", backup_path);
        __system(tmp);
     }
     if (!restore_data) {
-       sprintf(tmp, "cd %s && cat md5 | grep -v data > md5_filtered && cp md5_filtered md5", backup_path);
+       sprintf(tmp, "cd '%s' && cat md5 | grep -v data > md5_filtered && cp md5_filtered md5", backup_path);
        __system(tmp);
     }
     if (!restore_cache) {
-       sprintf(tmp, "cd %s && cat md5 | grep -v cache > md5_filtered && cp md5_filtered md5", backup_path);
+       sprintf(tmp, "cd '%s' && cat md5 | grep -v cache > md5_filtered && cp md5_filtered md5", backup_path);
        __system(tmp);
     }
     if (!restore_sdext) {
-       sprintf(tmp, "cd %s && cat md5 | grep -v sd-ext > md5_filtered && cp md5_filtered md5", backup_path);
+       sprintf(tmp, "cd '%s' && cat md5 | grep -v sd-ext > md5_filtered && cp md5_filtered md5", backup_path);
        __system(tmp);
     }
     if (!restore_pds) {
-       sprintf(tmp, "cd %s && cat md5 | grep -v pds > md5_filtered && cp md5_filtered md5", backup_path);
+       sprintf(tmp, "cd '%s' && cat md5 | grep -v pds > md5_filtered && cp md5_filtered md5", backup_path);
        __system(tmp);
     }
-    sprintf(tmp, "cd %s && md5sum -c md5", backup_path);
+    sprintf(tmp, "cd '%s' && md5sum -c md5", backup_path);
     int ret = __system(tmp);
-    sprintf(tmp, "cd %s && rm -f md5 md5_filtered", backup_path);
+    sprintf(tmp, "cd '%s' && rm -f md5 md5_filtered", backup_path);
     __system(tmp);
     if(ret)
         return print_and_error("MD5 mismatch!\n");
