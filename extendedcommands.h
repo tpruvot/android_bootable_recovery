@@ -8,7 +8,10 @@ void
 toggle_script_asserts();
 
 void
-show_nandroid_restore_menu();
+show_nandroid_restore_menu(const char* path);
+
+void
+show_nandroid_advanced_restore_menu(const char* path);
 
 void
 show_nandroid_menu();
