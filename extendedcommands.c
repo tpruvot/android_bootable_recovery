@@ -1003,7 +1003,7 @@ void show_nandroid_menu()
                 {
                     struct timeval tp;
                     gettimeofday(&tp, NULL);
-                    sprintf(backup_path, "/emmc/clockworkmod/backup/%d", tp.tv_sec);
+                    sprintf(backup_path, "/emmc/clockworkmod/backup/%d", (int) tp.tv_sec);
                 }
                 else
                 {

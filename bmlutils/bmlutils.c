@@ -96,7 +96,7 @@ int cmd_bml_backup_raw_partition(const char *partition, const char *out_file)
         bml = BOARD_BML_RECOVERY;
     else if (partition[0] == '/') {
         // support explicitly provided device paths
-        bml = partition;
+        bml = (char*) partition;
     }
     else {
         printf("Invalid partition.\n");
@@ -141,7 +141,7 @@ int cmd_bml_backup_raw_partition(const char *partition, const char *out_file)
         }
     }
 
-    fsync(out);
+    fflush( out );
     ret = 0;
 ERROR1:
     fclose ( out );
