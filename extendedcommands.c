@@ -833,8 +833,8 @@ int file_exists(char * file)
 
 void show_nandroid_advanced_restore_menu(const char* path)
 {
-    if (ensure_path_mounted("/sdcard") != 0) {
-        LOGE ("Can't mount /sdcard\n");
+    if (ensure_path_mounted(path) != 0) {
+        LOGE ("Can't mount sdcard\n");
         return;
     }
 
@@ -847,7 +847,9 @@ void show_nandroid_advanced_restore_menu(const char* path)
                                 NULL
     };
 
-    char* dir = choose_file_menu("/sdcard/clockworkmod/backup/", NULL, advancedheaders);
+    static char tmp[PATH_MAX];
+    sprintf(tmp, "%s/clockworkmod/backup", path);
+    char* dir = choose_file_menu(tmp, NULL, advancedheaders);
     if (dir == NULL)
         return;
 
@@ -865,7 +867,6 @@ void show_nandroid_advanced_restore_menu(const char* path)
                             NULL
     };
 
-    static char tmp[PATH_MAX];
     if (0 != get_partition_device("pds", tmp)) {
         // disable pds restore option
         list[5] = NULL;
