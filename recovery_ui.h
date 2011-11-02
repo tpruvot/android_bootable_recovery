@@ -76,6 +76,10 @@ int device_wipe_data();
 #define ITEM_ADVANCED        7
 #define ITEM_POWEROFF        8          
 
+#define ITEM_EXITRECOVERY    9
+
+#define ITEM_LASTEST ITEM_EXITRECOVERY
+
 // Header text to display above the main menu.
 extern char* MENU_HEADERS[];
 

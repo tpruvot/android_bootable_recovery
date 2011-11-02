@@ -45,6 +45,9 @@
 #include "extendedcommands.h"
 #include "flashutils/flashutils.h"
 
+#include "../../external/yaffs2/yaffs2/utils/mkyaffs2image.h"
+#include "../../external/yaffs2/yaffs2/utils/unyaffs.h"
+
 static const struct option OPTIONS[] = {
   { "send_intent", required_argument, NULL, 's' },
   { "update_package", required_argument, NULL, 'u' },
@@ -427,7 +430,7 @@ copy_sideloaded_package(const char* original_path) {
 
 static char**
 prepend_title(char** headers) {
-    char* title[] = { EXPAND(RECOVERY_VERSION),
+    char* title[] = { EXPAND(RECOVERY_VERSION) EXPAND(RECOVERY_SUFFIX),
                       "",
                       NULL };
 
@@ -499,6 +502,8 @@ get_menu_selection(char** headers, char** items, int menu_only,
             chosen_item = action;
         }
 
+        ui_set_showing_back_button(1);
+        /*
         if (abs(selected - old_selected) > 1) {
             wrap_count++;
             if (wrap_count == 3) {
@@ -513,6 +518,7 @@ get_menu_selection(char** headers, char** items, int menu_only,
                 }
             }
         }
+        */
     }
 
     ui_end_menu();
@@ -541,7 +547,7 @@ sdcard_directory(const char* path) {
         return 0;
     }
 
-    char** headers = prepend_title(MENU_HEADERS);
+    char** headers = prepend_title((char **)MENU_HEADERS);
 
     int d_size = 0;
     int d_alloc = 10;
@@ -655,7 +661,7 @@ wipe_data(int confirm) {
                                 "  THIS CAN NOT BE UNDONE.",
                                 "",
                                 NULL };
-            title_headers = prepend_title((const char**)headers);
+            title_headers = prepend_title((char**)headers);
         }
 
         char* items[] = { " No",
@@ -684,14 +690,16 @@ wipe_data(int confirm) {
     if (has_datadata()) {
         erase_volume("/datadata");
     }
+#ifdef WIPE_DATA_ERASE_SDEXT
     erase_volume("/sd-ext");
+#endif
     erase_volume("/sdcard/.android_secure");
     ui_print("Data wipe complete.\n");
 }
 
 static void
 prompt_and_wait() {
-    char** headers = prepend_title((const char**)MENU_HEADERS);
+    char** headers = prepend_title((char**)MENU_HEADERS);
 
     for (;;) {
         finish_recovery(NULL);
@@ -756,6 +764,13 @@ prompt_and_wait() {
             case ITEM_POWEROFF:
                 poweroff=1;
                 return;
+            case ITEM_EXITRECOVERY:
+            case GO_BACK:
+                // dont use finish recovery...
+                //finish_recovery(NULL);
+
+                //choose what to do in this script... (kill or not)
+                __system("nohup /sbin/recoveryexit.sh");
         }
     }
 }
@@ -767,7 +782,7 @@ print_property(const char *key, const char *name, void *cookie) {
 
 int
 main(int argc, char **argv) {
-	if (strcmp(basename(argv[0]), "recovery") != 0)
+	if (strncmp(basename(argv[0]), "recovery", 8) != 0)
 	{
 	    if (strstr(argv[0], "flash_image") != NULL)
 	        return flash_image_main(argc, argv);
@@ -786,7 +801,8 @@ main(int argc, char **argv) {
         if (strstr(argv[0], "nandroid"))
             return nandroid_main(argc, argv);
         if (strstr(argv[0], "reboot"))
-            return reboot_main(argc, argv);
+            return reboot_wrapper(argv[0]);
+//          return reboot_main(argc, argv);
 #ifdef BOARD_RECOVERY_HANDLES_MOUNT
         if (strstr(argv[0], "mount") && argc == 2 && !strstr(argv[0], "umount"))
         {
@@ -795,7 +811,8 @@ main(int argc, char **argv) {
         }
 #endif
         if (strstr(argv[0], "poweroff")){
-            return reboot_main(argc, argv);
+            return reboot_wrapper(argv[0]);
+//          return reboot_main(argc, argv);
         }
         if (strstr(argv[0], "setprop"))
             return setprop_main(argc, argv);
@@ -952,6 +969,9 @@ main(int argc, char **argv) {
 
     if (status != INSTALL_SUCCESS && !is_user_initiated_recovery) ui_set_background(BACKGROUND_ICON_ERROR);
     if (status != INSTALL_SUCCESS || ui_text_visible()) {
+        if (!ui_text_visible()) {
+            ui_set_show_text(1);
+        }
         prompt_and_wait();
     }
 

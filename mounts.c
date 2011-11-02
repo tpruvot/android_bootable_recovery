@@ -22,6 +22,9 @@
 #include <sys/mount.h>
 
 #include "mounts.h"
+#include "common.h"
+
+extern int __system(const char *command);
 
 typedef struct {
     MountedVolume *volumes;
@@ -198,6 +201,13 @@ unmount_mounted_volume(const MountedVolume *volume)
      * to unmount a volume they already unmounted using this
      * function.
      */
+#ifdef BOARD_NEVER_UMOUNT_SYSTEM
+    if (strcmp(volume->mount_point, "/system") == 0) {
+        printf("Skip system unmount, remount read-only\n");
+        __system("echo 1 > /sys/class/leds/red/brightness");
+        return remount_read_only(volume);
+    }
+#endif
     int ret = umount(volume->mount_point);
     if (ret == 0) {
         free_volume_internals(volume, 1);
@@ -209,6 +219,7 @@ unmount_mounted_volume(const MountedVolume *volume)
 int
 remount_read_only(const MountedVolume* volume)
 {
+    printf("Remount %s read-only\n", volume->mount_point);
     return mount(volume->device, volume->mount_point, volume->filesystem,
                  MS_NOATIME | MS_NODEV | MS_NODIRATIME |
                  MS_RDONLY | MS_REMOUNT, 0);

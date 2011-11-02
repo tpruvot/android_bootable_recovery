@@ -139,7 +139,7 @@ Value* FormatFn(const char* name, State* state, int argc, Expr* argv[]) {
     }
     
     if (strcmp(path, "/data") == 0 && has_datadata()) {
-        ui_print("Formatting /datadata...\n", path);
+        ui_print("Formatting /datadata...\n");
         if (0 != format_volume("/datadata")) {
             free(path);
             return StringValue(strdup(""));
@@ -164,7 +164,7 @@ Value* BackupFn(const char* name, State* state, int argc, Expr* argv[]) {
         return NULL;
     }
     
-    if (0 != nandroid_backup(path))
+    if (0 != nandroid_backup(path, 1, 1, 1, 1, 1, 1, 1))
         return StringValue(strdup(""));
     
     return StringValue(strdup(path));
@@ -298,8 +298,6 @@ int run_script_from_buffer(char* script_data, int script_len, char* filename)
     return 0;
 }
 
-
-
 #define EXTENDEDCOMMAND_SCRIPT "/cache/recovery/extendedcommand"
 
 int run_and_remove_extendedcommand()
@@ -350,6 +348,7 @@ int run_and_remove_extendedcommand()
 #endif
     return run_script(tmp);
 }
+
 
 int extendedcommand_file_exists()
 {
@@ -409,7 +408,7 @@ int run_script(char* filename)
 {
     struct stat file_info;
     if (0 != stat(filename, &file_info)) {
-        printf("Error executing stat on file: %s\n", filename);
+        printf("Script not found: %s\n", filename);
         return 1;
     }
 
