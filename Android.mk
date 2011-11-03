@@ -62,7 +62,9 @@ $(foreach board_define,$(BOARD_RECOVERY_DEFINES), \
   $(if $($(board_define)), \
     $(eval LOCAL_CFLAGS += -D$(board_define)=\"$($(board_define))\") \
   ) \
-  )
+ )
+
+LOCAL_CFLAGS += -DBUILD_TOP="$(ANDROID_BUILD_TOP)"
 
 # This binary is in the recovery ramdisk, which is otherwise a copy of root.
 # It gets copied there in config/Makefile.  LOCAL_MODULE_TAGS suppresses

@@ -37,10 +37,10 @@
 #include "edify/expr.h"
 #include <libgen.h>
 #include "mtdutils/mtdutils.h"
-
-#include "../../external/yaffs2/yaffs2/utils/mkyaffs2image.h"
-#include "../../external/yaffs2/yaffs2/utils/unyaffs.h"
 #include "mmcutils/mmcutils.h"
+
+#include EXPAND(BUILD_TOP/external/yaffs2/yaffs2/utils/mkyaffs2image.h)
+#include EXPAND(BUILD_TOP/external/yaffs2/yaffs2/utils/unyaffs.h)
 
 int signature_check_enabled = 1;
 int script_assert_enabled = 1;

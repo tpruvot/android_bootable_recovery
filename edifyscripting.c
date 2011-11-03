@@ -33,9 +33,6 @@
 #include "roots.h"
 #include "recovery_ui.h"
 
-#include "../../external/yaffs2/yaffs2/utils/mkyaffs2image.h"
-#include "../../external/yaffs2/yaffs2/utils/unyaffs.h"
-
 #include "extendedcommands.h"
 #include "nandroid.h"
 #include "mounts.h"
@@ -44,6 +41,9 @@
 #include "mtdutils/mtdutils.h"
 #include "mmcutils/mmcutils.h"
 //#include "edify/parser.h"
+
+#include EXPAND(BUILD_TOP/external/yaffs2/yaffs2/utils/mkyaffs2image.h)
+#include EXPAND(BUILD_TOP/external/yaffs2/yaffs2/utils/unyaffs.h)
 
 Value* UIPrintFn(const char* name, State* state, int argc, Expr* argv[]) {
     char** args = ReadVarArgs(state, argc, argv);
