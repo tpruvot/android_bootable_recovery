@@ -544,32 +544,38 @@ int nandroid_restore(const char* backup_path, int parts)
     ui_print("Checking MD5 sums...\n");
     sprintf(tmp, "cd '%s' && cat *.md5 > md5", backup_path);
     __system(tmp);
+
+    char* fmt = "cd '%s' && cat md5 | grep -v %s > md5_filtered && cp md5_filtered md5";
     if (!(parts & BAK_BOOT)) {
-       sprintf(tmp, "cd '%s' && cat md5 | grep -v boot > md5_filtered && cp md5_filtered md5", backup_path);
+       sprintf(tmp, fmt, backup_path, "boot");
        __system(tmp);
     }
     if (!(parts & BAK_SYSTEM)) {
-       sprintf(tmp, "cd '%s' && cat md5 | grep -v system > md5_filtered && cp md5_filtered md5", backup_path);
+       sprintf(tmp, fmt, backup_path, "system");
        __system(tmp);
     }
     if (!(parts & BAK_DATA)) {
-       sprintf(tmp, "cd '%s' && cat md5 | grep -v data > md5_filtered && cp md5_filtered md5", backup_path);
+       sprintf(tmp, fmt, backup_path, "data");
        __system(tmp);
     }
     if (!(parts & BAK_CACHE)) {
-       sprintf(tmp, "cd '%s' && cat md5 | grep -v cache > md5_filtered && cp md5_filtered md5", backup_path);
+       sprintf(tmp, fmt, backup_path, "cache");
        __system(tmp);
     }
     if (!(parts & BAK_SDEXT)) {
-       sprintf(tmp, "cd '%s' && cat md5 | grep -v sd-ext > md5_filtered && cp md5_filtered md5", backup_path);
+       sprintf(tmp, fmt, backup_path, "sdext");
        __system(tmp);
     }
     if (!(parts & BAK_DEVTREE)) {
-       sprintf(tmp, "cd '%s' && cat md5 | grep -v devtree > md5_filtered && cp md5_filtered md5", backup_path);
+       sprintf(tmp, fmt, backup_path, "devtree");
+       __system(tmp);
+    }
+    if (!(parts & BAK_RECOVERY)) {
+       sprintf(tmp, fmt, backup_path, "recovery");
        __system(tmp);
     }
     if (!(parts & BAK_PDS)) {
-       sprintf(tmp, "cd '%s' && cat md5 | grep -v pds > md5_filtered && cp md5_filtered md5", backup_path);
+       sprintf(tmp, fmt, backup_path, "pds");
        __system(tmp);
     }
     sprintf(tmp, "cd '%s' && md5sum -c md5", backup_path);
@@ -635,13 +641,16 @@ DANGEROUS, DISABLED
         return ret;
 
     if ((parts & BAK_CACHE) && 0 != (ret = nandroid_restore_partition_extended(backup_path, "/cache", 0)))
-        return ret;
+        ui_print("\nProblem while restoring cache !\n");
 
     if ((parts & BAK_SDEXT) && 0 != (ret = nandroid_restore_partition(backup_path, "/sd-ext")))
-        return ret;
+        ui_print("\nProblem while restoring sd-ext !\n");
 
     if ((parts & BAK_DEVTREE) && 0 != (ret = nandroid_restore_partition_extended(backup_path, "/devtree", 0)))
-        return ret;
+        ui_print("\nProblem while restoring devtree !\n");
+
+    if ((parts & BAK_RECOVERY) && 0 != (ret = nandroid_restore_partition_extended(backup_path, "/recovery", 0)))
+        ui_print("\nProblem while restoring recovery !\n");
 
 //    if ((parts & BAK_PDS) && 0 != (ret = nandroid_restore_partition_extended(backup_path, "/pds", 0)))
 //        return ret;
@@ -649,7 +658,9 @@ DANGEROUS, DISABLED
     sync();
     //ui_set_background(BACKGROUND_ICON_NONE);
     ui_reset_progress();
-    ui_print("\nRestore complete!\n");
+    if (ret == 0)
+        ui_print("\nRestore complete!\n");
+
     return 0;
 }
 
