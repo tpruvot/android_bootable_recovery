@@ -38,6 +38,7 @@
 #include <libgen.h>
 #include "mtdutils/mtdutils.h"
 #include "mmcutils/mmcutils.h"
+#include "make_ext4fs.h"
 
 #include EXPAND(BUILD_TOP/external/yaffs2/yaffs2/utils/mkyaffs2image.h)
 #include EXPAND(BUILD_TOP/external/yaffs2/yaffs2/utils/unyaffs.h)
@@ -343,7 +344,7 @@ void show_nandroid_restore_menu(const char* path)
 
     if (confirm_selection("Confirm restore?", "Yes - Restore")) {
       //nandroid_restore(file, 1, 1, 1, 1, 1, 0);
-        nandroid_restore(file, 0, 1, 1, 0, 0, 0);
+        nandroid_restore(file, BAK_SYSTEM | BAK_DATA);
     }
 }
 
@@ -771,6 +772,7 @@ void show_nandroid_advanced_backup_menu(const char* backup_path)
                             "Backup data",
                             "Backup cache",
                             "Backup sd-ext",
+                            "Backup devtree",
                             "Backup pds",
                             NULL
     };
@@ -778,7 +780,7 @@ void show_nandroid_advanced_backup_menu(const char* backup_path)
     char tmp[PATH_MAX];
     if (0 != get_partition_device("pds", tmp)) {
         // disable pds backup option
-        list[6] = NULL;
+        list[7] = NULL;
     }
 
     static char* confirm_backup  = "Confirm backup?";
@@ -788,37 +790,42 @@ void show_nandroid_advanced_backup_menu(const char* backup_path)
     {
         case 0:
             // Backup recovery
-            nandroid_backup(backup_path, 1, 0, 0, 0, 0, 0, 0);
+            nandroid_backup(backup_path, BAK_RECOVERY);
             show_nandroid_advanced_backup_menu(backup_path);
             break;
         case 1:
             // Backup boot
-            nandroid_backup(backup_path, 0, 1, 0, 0, 0, 0, 0);
+            nandroid_backup(backup_path, BAK_BOOT);
             show_nandroid_advanced_backup_menu(backup_path);
             break;
         case 2:
             // Backup system
-            nandroid_backup(backup_path, 0, 0, 1, 0, 0, 0, 0);
+            nandroid_backup(backup_path, BAK_SYSTEM);
             show_nandroid_advanced_backup_menu(backup_path);
             break;
         case 3:
             // Backup data
-            nandroid_backup(backup_path, 0, 0, 0, 1, 0, 0, 0);
+            nandroid_backup(backup_path, BAK_DATA);
             show_nandroid_advanced_backup_menu(backup_path);
             break;
         case 4:
             // Backup cache
-            nandroid_backup(backup_path, 0, 0, 0, 0, 1, 0, 0);
+            nandroid_backup(backup_path, BAK_CACHE);
             show_nandroid_advanced_backup_menu(backup_path);
             break;
         case 5:
             // Backup sd-ext
-            nandroid_backup(backup_path, 0, 0, 0, 0, 0, 1, 0);
+            nandroid_backup(backup_path, BAK_SDEXT);
             show_nandroid_advanced_backup_menu(backup_path);
             break;
         case 6:
+            // Backup devtree
+            nandroid_backup(backup_path, BAK_DEVTREE);
+            show_nandroid_advanced_backup_menu(backup_path);
+            break;
+        case 7:
             // Backup pds
-            nandroid_backup(backup_path, 0, 0, 0, 0, 0, 0, 1);
+            nandroid_backup(backup_path, BAK_SDEXT);
             show_nandroid_advanced_backup_menu(backup_path);
             break;
     }
@@ -863,21 +870,23 @@ void show_nandroid_advanced_restore_menu(const char* path)
                             "Restore data",
                             "Restore cache",
                             "Restore sd-ext",
+                            "Restore devtree",
+                            "Restore recovery",
                             "Restore pds",
                             NULL
     };
 
     if (0 != get_partition_device("pds", tmp)) {
         // disable pds restore option
-        list[5] = NULL;
+        list[7] = NULL;
     }
 
     char* name;
     int p, chosen_item, skip=0;
     static char* confirm_restore  = "Confirm restore?";
 
-    for (p=5; p >= 0; p--) {
-        if (list[p] != NULL) {
+    for (p=6; p >= 0; p--) {
+        if (list[p] != NULL && strlen(list[p])) {
             name = list[p] + strlen("Restore ");
             sprintf(tmp, "%s/%s.img", dir, name);
             usleep(10000);
@@ -887,12 +896,12 @@ void show_nandroid_advanced_restore_menu(const char* path)
             if (! file_exists(tmp)) {
                 //only set NULL at end, else next items are hidden
                 if (!skip)
-                    list[p]=NULL;
+                    list[p][0]='\0';//NULL;
                 else
                     ui_print("%s not found.\n",name);
             } else {
                 ui_print("%s is present.\n",tmp);
-                skip = 1;
+                //skip = 1;
             }
         }
     }
@@ -902,27 +911,35 @@ void show_nandroid_advanced_restore_menu(const char* path)
     {
         case 0:
             if (confirm_selection(confirm_restore, "Yes - Restore boot"))
-                nandroid_restore(dir, 1, 0, 0, 0, 0, 0);
+                nandroid_restore(dir, BAK_BOOT);
             break;
         case 1:
             if (confirm_selection(confirm_restore, "Yes - Restore system"))
-                nandroid_restore(dir, 0, 1, 0, 0, 0, 0);
+                nandroid_restore(dir, BAK_SYSTEM);
             break;
         case 2:
             if (confirm_selection(confirm_restore, "Yes - Restore data"))
-                nandroid_restore(dir, 0, 0, 1, 0, 0, 0);
+                nandroid_restore(dir, BAK_DATA);
             break;
         case 3:
             if (confirm_selection(confirm_restore, "Yes - Restore cache"))
-                nandroid_restore(dir, 0, 0, 0, 1, 0, 0);
+                nandroid_restore(dir, BAK_CACHE);
             break;
         case 4:
             if (confirm_selection(confirm_restore, "Yes - Restore sd-ext"))
-                nandroid_restore(dir, 0, 0, 0, 0, 1, 0);
+                nandroid_restore(dir, BAK_SDEXT);
             break;
         case 5:
+            if (confirm_selection(confirm_restore, "Yes - Restore devtree"))
+                nandroid_restore(dir, BAK_DEVTREE);
+            break;
+        case 6:
+            if (confirm_selection(confirm_restore, "Yes - Restore recovery"))
+                nandroid_restore(dir, BAK_RECOVERY);
+            break;
+        case 7:
             if (confirm_selection(confirm_restore, "Yes - Restore pds"))
-                nandroid_restore(dir, 0, 0, 0, 0, 0, 1);
+                nandroid_restore(dir, BAK_PDS);
             break;
     }
 }
@@ -966,7 +983,7 @@ void show_nandroid_menu()
                 {
                     strftime(backup_path, sizeof(backup_path), "/sdcard/clockworkmod/backup/%F.%H.%M.%S", tmp);
                 }
-                nandroid_backup(backup_path, 1, 1, 1, 1, 1, 1, 1);
+                nandroid_backup(backup_path, BACKUP_ALL);
             }
             break;
         case 1:
@@ -1009,7 +1026,7 @@ void show_nandroid_menu()
                 {
                     strftime(backup_path, sizeof(backup_path), "/emmc/clockworkmod/backup/%F.%H.%M.%S", tmp);
                 }
-                nandroid_backup(backup_path, 1, 1, 1, 1, 1, 1, 1);
+                nandroid_backup(backup_path, BACKUP_ALL);
             }
             break;
         case 5:
@@ -1346,8 +1363,8 @@ void process_volumes() {
     ui_print("named %s. Try restoring it\n", backup_name);
     ui_print("in case of error.\n");
 
-    nandroid_backup(backup_path,  0, 1, 1, 1, 1, 0, 0);
-    nandroid_restore(backup_path, 1, 1, 1, 1, 0, 0);
+    nandroid_backup(backup_path,  BAK_SYSTEM | BAK_DATA | BAK_CACHE | BAK_SDEXT);
+    nandroid_restore(backup_path, BAK_SYSTEM | BAK_DATA | BAK_CACHE | BAK_SDEXT);
     ui_set_show_text(0);
 }
 

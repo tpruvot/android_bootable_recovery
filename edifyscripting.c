@@ -164,7 +164,7 @@ Value* BackupFn(const char* name, State* state, int argc, Expr* argv[]) {
         return NULL;
     }
     
-    if (0 != nandroid_backup(path, 1, 1, 1, 1, 1, 1, 1))
+    if (0 != nandroid_backup(path, BACKUP_ALL))
         return StringValue(strdup(""));
     
     return StringValue(strdup(path));
@@ -184,26 +184,22 @@ Value* RestoreFn(const char* name, State* state, int argc, Expr* argv[]) {
     args2[argc] = NULL;
     
     char* path = strdup(args2[0]);
-    int restoreboot = 1;
-    int restoresystem = 1;
-    int restoredata = 1;
-    int restorecache = 1;
-    int restoresdext = 1;
+    int parts = BAK_BOOT | BAK_SYSTEM | BAK_DATA | BAK_CACHE | BAK_SDEXT;
     int i;
     for (i = 1; i < argc; i++)
     {
         if (args2[i] == NULL)
             continue;
         if (strcmp(args2[i], "noboot") == 0)
-            restoreboot = 0;
+            parts -= BAK_BOOT;
         else if (strcmp(args2[i], "nosystem") == 0)
-            restoresystem = 0;
+            parts -= BAK_SYSTEM;
         else if (strcmp(args2[i], "nodata") == 0)
-            restoredata = 0;
+            parts -= BAK_DATA;
         else if (strcmp(args2[i], "nocache") == 0)
-            restorecache = 0;
+            parts -= BAK_CACHE;
         else if (strcmp(args2[i], "nosd-ext") == 0)
-            restoresdext = 0;
+            parts -= BAK_SDEXT;
     }
     
     for (i = 0; i < argc; ++i) {
@@ -212,7 +208,7 @@ Value* RestoreFn(const char* name, State* state, int argc, Expr* argv[]) {
     free(args);
     free(args2);
 
-    if (0 != nandroid_restore(path, restoreboot, restoresystem, restoredata, restorecache, restoresdext, 0)) {
+    if (0 != nandroid_restore(path, parts)) {
         free(path);
         return StringValue(strdup(""));
     }
