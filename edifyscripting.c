@@ -184,14 +184,14 @@ Value* RestoreFn(const char* name, State* state, int argc, Expr* argv[]) {
     args2[argc] = NULL;
     
     char* path = strdup(args2[0]);
-    int parts = BAK_BOOT | BAK_SYSTEM | BAK_DATA | BAK_CACHE | BAK_SDEXT;
+    int parts = BAK_BOOT|BAK_DEVTREE|BAK_RECOVERY | BAK_SYSTEM|BAK_DATA|BAK_CACHE|BAK_SDEXT;
     int i;
     for (i = 1; i < argc; i++)
     {
         if (args2[i] == NULL)
             continue;
         if (strcmp(args2[i], "noboot") == 0)
-            parts -= BAK_BOOT;
+            parts -= BAK_BOOT|BAK_DEVTREE|BAK_RECOVERY;
         else if (strcmp(args2[i], "nosystem") == 0)
             parts -= BAK_SYSTEM;
         else if (strcmp(args2[i], "nodata") == 0)

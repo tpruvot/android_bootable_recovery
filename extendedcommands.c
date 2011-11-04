@@ -777,15 +777,16 @@ void show_nandroid_advanced_backup_menu(const char* backup_path)
                                 NULL
     };
 
-    static char* list[] = { "Backup recovery",
-                            "Backup boot",
-                            "Backup system",
-                            "Backup data",
-                            "Backup cache",
-                            "Backup sd-ext",
-                            "Backup devtree",
-                            "Backup pds",
-                            NULL
+    static char* list[] = {
+        "Backup system",
+        "Backup data",
+        "Backup cache",
+        "Backup sd-ext",
+        "Backup boot",
+        "Backup devtree",
+        "Backup recovery",
+        "Backup pds",
+        NULL
     };
 
     char tmp[PATH_MAX];
@@ -800,43 +801,35 @@ void show_nandroid_advanced_backup_menu(const char* backup_path)
     switch (chosen_item)
     {
         case 0:
-            // Backup recovery
-            nandroid_backup(backup_path, BAK_RECOVERY);
-            show_nandroid_advanced_backup_menu(backup_path);
-            break;
-        case 1:
-            // Backup boot
-            nandroid_backup(backup_path, BAK_BOOT);
-            show_nandroid_advanced_backup_menu(backup_path);
-            break;
-        case 2:
-            // Backup system
             nandroid_backup(backup_path, BAK_SYSTEM);
             show_nandroid_advanced_backup_menu(backup_path);
             break;
-        case 3:
-            // Backup data
+        case 1:
             nandroid_backup(backup_path, BAK_DATA);
             show_nandroid_advanced_backup_menu(backup_path);
             break;
-        case 4:
-            // Backup cache
+        case 2:
             nandroid_backup(backup_path, BAK_CACHE);
             show_nandroid_advanced_backup_menu(backup_path);
             break;
-        case 5:
-            // Backup sd-ext
+        case 3:
             nandroid_backup(backup_path, BAK_SDEXT);
             show_nandroid_advanced_backup_menu(backup_path);
             break;
-        case 6:
-            // Backup devtree
+        case 4:
+            nandroid_backup(backup_path, BAK_BOOT);
+            show_nandroid_advanced_backup_menu(backup_path);
+            break;
+        case 5:
             nandroid_backup(backup_path, BAK_DEVTREE);
             show_nandroid_advanced_backup_menu(backup_path);
             break;
+        case 6:
+            nandroid_backup(backup_path, BAK_RECOVERY);
+            show_nandroid_advanced_backup_menu(backup_path);
+            break;
         case 7:
-            // Backup pds
-            nandroid_backup(backup_path, BAK_SDEXT);
+            nandroid_backup(backup_path, BAK_PDS);
             show_nandroid_advanced_backup_menu(backup_path);
             break;
     }
@@ -972,10 +965,10 @@ void show_nandroid_menu()
                                 NULL
     };
 
-    static char* list[] = { "Backup",
-                            "Advanced Backup",
-                            "Restore",
-                            "Advanced Restore",
+    static char* list[] = { "Backup (all)",
+                            "Advanced Backup...",
+                            "Restore (system & data)",
+                            "Advanced Restore...",
 
                             "backup to internal sdcard",
                             "restore from internal sdcard",
@@ -1315,6 +1308,8 @@ void create_fstab()
     write_fstab_root("/datadata", file);
     write_fstab_root("/emmc", file);
     write_fstab_root("/system", file);
+    write_fstab_root("/devtree", file);
+    write_fstab_root("/recovery", file);
     write_fstab_root("/sdcard", file);
     write_fstab_root("/sd-ext", file);
     fclose(file);

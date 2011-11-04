@@ -92,4 +92,7 @@ get_menu_selection(char** headers, char** items, int menu_only, int initial_sele
 void
 set_sdcard_update_bootloader_message();
 
+int
+get_allow_toggle_display();
+
 #endif

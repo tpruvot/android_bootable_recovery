@@ -170,7 +170,7 @@ int nandroid_backup_partition_extended(const char* backup_path, const char* moun
     
     ui_print("Backing up %s...\n", name);
     if (0 != (ret = ensure_path_mounted(mount_point) != 0)) {
-        ui_print("Can't mount %s!\n", mount_point);
+        LOGW("Can't mount %s!\n", mount_point);
         return ret;
     }
     compute_directory_stats(mount_point);
@@ -264,16 +264,13 @@ int nandroid_backup(const char* backup_path, int parts)
     sprintf(tmp, "mkdir -p %s", backup_path);
     __system(tmp);
 
-    if ((parts & BAK_BOOT) && (ret = nandroid_backup_partition(backup_path, "/boot")))
+    if ((parts & BAK_BOOT) && (ret = nandroid_backup_partition(backup_path, "/boot")) )
         ui_print(warning, "boot");
 
-    if ((parts & BAK_RECOVERY) && (ret = nandroid_backup_partition(backup_path, "/recovery")))
-        ui_print(warning, "recovery");
-
-    if ((parts & BAK_SYSTEM) && (ret = nandroid_backup_partition(backup_path, "/system")))
+    if ((parts & BAK_SYSTEM) && (ret = nandroid_backup_partition_extended(backup_path, "/system", 0)) )
         ui_print(warning, "system");
 
-    if ((parts & BAK_DATA) && (ret = nandroid_backup_partition(backup_path, "/data")))
+    if ((parts & BAK_DATA) && (ret = nandroid_backup_partition_extended(backup_path, "/data", 0)) )
         ui_print(warning, "data");
 
     if (has_datadata()) {
@@ -289,10 +286,10 @@ int nandroid_backup(const char* backup_path, int parts)
     if ((parts & BAK_CACHE) && (ret = nandroid_backup_partition_extended(backup_path,"/cache", 0)))
         ui_print(warning, "cache");
 
-    if ((parts & BAK_DEVTREE) && (ret = nandroid_backup_partition_extended(backup_path,"/devtree", 0)))
+    if ((parts & BAK_DEVTREE) && (ret = nandroid_backup_partition(backup_path,"/devtree")))
         ui_print(warning, "devtree");
 
-    if ((parts & BAK_RECOVERY) && (ret = nandroid_backup_partition_extended(backup_path,"/recovery", 0)))
+    if ((parts & BAK_RECOVERY) && (ret = nandroid_backup_partition(backup_path,"/recovery")))
         ui_print(warning, "recovery");
 
     Volume *vol = volume_for_path("/pds");
@@ -421,8 +418,8 @@ int nandroid_restore_partition_extended(const char* backup_path, const char* mou
     if (0 != (ret = stat(tmp, &file_info))) {
         // can't find the backup, it may be the new backup format?
         // iterate through the backup types
-        printf("couldn't find default\n");
-        char *filesystem;
+        LOGI("couldn't find default type\n");
+        const char *filesystem;
         int i = 0;
         while ((filesystem = filesystems[i]) != NULL) {
             sprintf(tmp, "%s/%s.%s.img", backup_path, name, filesystem);
@@ -441,7 +438,7 @@ int nandroid_restore_partition_extended(const char* backup_path, const char* mou
         }
 
         if (backup_filesystem == NULL || restore_handler == NULL) {
-            ui_print("%s.img not found. Skipping restore of %s.\n", name, mount_point);
+            ui_print("%s.img not found.\nSkipping restore of %s.\n", name, mount_point);
             return 0;
         }
         else {
@@ -477,8 +474,9 @@ int nandroid_restore_partition_extended(const char* backup_path, const char* mou
         return ret;
     }
 
-    if (0 != (ret = ensure_path_mounted(mount_point))) {
-        ui_print("Can't mount %s!\n", mount_point);
+    if (0 != (ret = ensure_path_mounted(mount_point)) ) {
+        if (backup_filesystem)
+            ui_print("Can't mount %s!\n", mount_point);
         return ret;
     }
 
