@@ -31,6 +31,7 @@
 #include <unistd.h>
 #include <dirent.h>
 #include <sys/stat.h>
+#include <libgen.h>
 
 #include "bootloader.h"
 #include "common.h"
@@ -41,7 +42,7 @@
 #include "roots.h"
 #include "recovery_ui.h"
 #include "encryptedfs_provisioning.h"
-
+#include "firmware.h"
 #include "extendedcommands.h"
 #include "flashutils/flashutils.h"
 
