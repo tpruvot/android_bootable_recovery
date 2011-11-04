@@ -46,6 +46,8 @@
 int signature_check_enabled = 1;
 int script_assert_enabled = 1;
 
+static char file_menu_ret[PATH_MAX]="";
+
 void
 toggle_signature_check()
 {
@@ -252,6 +254,10 @@ char* choose_file_menu(const char* directory, const char* fileExtensionOrDirecto
     char** dirs = NULL;
     if (fileExtensionOrDirectory != NULL)
         dirs = gather_files(directory, NULL, &numDirs);
+
+    //use a global buffer for this..
+    memset(file_menu_ret, 0, sizeof(file_menu_ret));
+
     int total = numDirs + numFiles;
     if (total == 0)
     {
@@ -261,7 +267,6 @@ char* choose_file_menu(const char* directory, const char* fileExtensionOrDirecto
     {
         char** list = (char**) malloc((total + 1) * sizeof(char*));
         list[total] = NULL;
-
 
         for (i = 0 ; i < numDirs; i++)
         {
@@ -278,7 +283,7 @@ char* choose_file_menu(const char* directory, const char* fileExtensionOrDirecto
             int chosen_item = get_menu_selection((char**) headers, list, 0, 0);
             if (chosen_item == GO_BACK)
                 break;
-            static char ret[PATH_MAX];
+            static char ret[PATH_MAX]="";
             if (chosen_item < numDirs)
             {
                 char* subret = choose_file_menu(dirs[chosen_item], fileExtensionOrDirectory, headers);
@@ -297,9 +302,12 @@ char* choose_file_menu(const char* directory, const char* fileExtensionOrDirecto
         free_string_array(list);
     }
 
-    free_string_array(files);
-    free_string_array(dirs);
-    return return_value;
+    if (files) free_string_array(files);
+    if (dirs) free_string_array(dirs);
+
+    sprintf(file_menu_ret, "%s", return_value);
+
+    return &file_menu_ret[0];
 }
 
 void show_choose_zip_menu(const char *mount_point)
@@ -551,8 +559,11 @@ int format_unknown_device(const char *device, const char* path, const char *fs_t
 
     if (0 != ensure_path_mounted(path))
     {
-        ui_print("Error mounting %s!\n", path);
-        ui_print("Skipping format...\n");
+        if (strcmp(path, "/boot") != 0) {
+            //boot is not a folder...
+            LOGW("Error mounting %s!\n", path);
+            LOGI("Skipping format...\n");
+        }
         return 0;
     }
 
@@ -838,6 +849,17 @@ int file_exists(char * file)
     return (int) (0 == stat(file, &file_info));
 }
 
+int file_size(char * file)
+{
+    struct stat fi;
+    unsigned int ret=0;
+    memset(&fi,0,sizeof(fi));
+    if (0 == stat(file, &fi)) {
+        ret = (fi.st_size) / 1024;
+    }
+    return ret;
+}
+
 void show_nandroid_advanced_restore_menu(const char* path)
 {
     if (ensure_path_mounted(path) != 0) {
@@ -849,13 +871,13 @@ void show_nandroid_advanced_restore_menu(const char* path)
                                 "",
                                 "Choose an image to restore",
                                 "first. The next menu will",
-                                "you more options.",
+                                "give you more options.",
                                 "",
                                 NULL
     };
 
     static char tmp[PATH_MAX];
-    sprintf(tmp, "%s/clockworkmod/backup", path);
+    sprintf(tmp, "%s/clockworkmod/backup/", path);
     char* dir = choose_file_menu(tmp, NULL, advancedheaders);
     if (dir == NULL)
         return;
@@ -883,8 +905,10 @@ void show_nandroid_advanced_restore_menu(const char* path)
 
     char* name;
     int p, chosen_item, skip=0;
-    static char* confirm_restore  = "Confirm restore?";
+    static char* confirm_restore = "Confirm restore?";
+    static char* unavailable = "";
 
+    ui_print("%s:\n", basename(dir));
     for (p=6; p >= 0; p--) {
         if (list[p] != NULL && strlen(list[p])) {
             name = list[p] + strlen("Restore ");
@@ -894,19 +918,16 @@ void show_nandroid_advanced_restore_menu(const char* path)
                 sprintf(tmp, "%s/%s.ext3.tar", dir, name);
             }
             if (! file_exists(tmp)) {
-                //only set NULL at end, else next items are hidden
-                if (!skip)
-                    list[p][0]='\0';//NULL;
-                else
-                    ui_print("%s not found.\n",name);
+                list[p]=unavailable;
             } else {
-                ui_print("%s is present.\n",tmp);
-                //skip = 1;
+                ui_print(" %s is present. %d kB\n", basename(tmp), file_size(tmp) );
             }
         }
     }
 
     chosen_item = get_menu_selection((char**) headers, list, 0, 0);
+
+    if (list[chosen_item] != unavailable)
     switch (chosen_item)
     {
         case 0:
