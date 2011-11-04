@@ -246,7 +246,7 @@ int nandroid_backup(const char* backup_path, int parts)
     Volume* volume = volume_for_path(backup_path);
     if (NULL == volume)
         return print_and_error("Unable to find volume for backup path.\n");
-    int ret;
+    int ret=0;
     struct stat st;
     struct statfs s;
     if (0 != (ret = statfs(volume->mount_point, &s)))
@@ -259,15 +259,41 @@ int nandroid_backup(const char* backup_path, int parts)
     if (sdcard_free_mb < 150)
         ui_print("There may not be enough free space to complete backup... continuing...\n");
 
+    const char * warning = "\nProblem while backing up %s !\n";
     char tmp[PATH_MAX];
     sprintf(tmp, "mkdir -p %s", backup_path);
     __system(tmp);
 
     if ((parts & BAK_BOOT) && (ret = nandroid_backup_partition(backup_path, "/boot")))
-        return ret;
+        ui_print(warning, "boot");
 
     if ((parts & BAK_RECOVERY) && (ret = nandroid_backup_partition(backup_path, "/recovery")))
-        return ret;
+        ui_print(warning, "recovery");
+
+    if ((parts & BAK_SYSTEM) && (ret = nandroid_backup_partition(backup_path, "/system")))
+        ui_print(warning, "system");
+
+    if ((parts & BAK_DATA) && (ret = nandroid_backup_partition(backup_path, "/data")))
+        ui_print(warning, "data");
+
+    if (has_datadata()) {
+        if ((parts & BAK_DATA) && (ret = nandroid_backup_partition(backup_path, "/datadata")))
+            ui_print(warning, "datadata");
+    }
+
+    if ((parts & BAK_DATA) && stat("/sdcard/.android_secure", &st))
+        ui_print("No /sdcard/.android_secure found. Skipping backup of applications on external storage.\n");
+    else if ((parts & BAK_DATA) && (ret = nandroid_backup_partition_extended(backup_path, "/sdcard/.android_secure", 0)))
+        ui_print(warning, "android_secure");
+
+    if ((parts & BAK_CACHE) && (ret = nandroid_backup_partition_extended(backup_path,"/cache", 0)))
+        ui_print(warning, "cache");
+
+    if ((parts & BAK_DEVTREE) && (ret = nandroid_backup_partition_extended(backup_path,"/devtree", 0)))
+        ui_print(warning, "devtree");
+
+    if ((parts & BAK_RECOVERY) && (ret = nandroid_backup_partition_extended(backup_path,"/recovery", 0)))
+        ui_print(warning, "recovery");
 
     Volume *vol = volume_for_path("/pds");
     if (parts & BAK_PDS)
@@ -285,39 +311,10 @@ int nandroid_backup(const char* backup_path, int parts)
             if (__system(tmp))
                 ui_print("Error while generating pds.%s md5 sum!\n", serialno);
             if (0 != ret)
-                return print_and_error("Error while dumping PDS image!\n");
+                ui_print(warning, "pds");
+                //return print_and_error("Error while dumping PDS image!\n");
         }
     }
-
-    if ((parts & BAK_SYSTEM) && (ret = nandroid_backup_partition(backup_path, "/system")))
-        return ret;
-
-    if ((parts & BAK_DATA) && (ret = nandroid_backup_partition(backup_path, "/data")))
-        return ret;
-
-    if (has_datadata()) {
-        if ((parts & BAK_DATA) && (ret = nandroid_backup_partition(backup_path, "/datadata")))
-            return ret;
-    }
-
-    if ((parts & BAK_DATA) && stat("/sdcard/.android_secure", &st))
-    {
-        ui_print("No /sdcard/.android_secure found. Skipping backup of applications on external storage.\n");
-    }
-    else
-    {
-        if ((parts & BAK_DATA) && (ret = nandroid_backup_partition_extended(backup_path, "/sdcard/.android_secure", 0)))
-            return ret;
-    }
-
-    if ((parts & BAK_CACHE) && (ret = nandroid_backup_partition_extended(backup_path,"/cache", 0)))
-        return ret;
-
-    if ((parts & BAK_DEVTREE) && (ret = nandroid_backup_partition_extended(backup_path,"/devtree", 0)))
-        return ret;
-
-    if ((parts & BAK_RECOVERY) && (ret = nandroid_backup_partition_extended(backup_path,"/recovery", 0)))
-        return ret;
 
     vol = volume_for_path("/sd-ext");
     if ((parts & BAK_SDEXT) && (vol == NULL || 0 != statfs(vol->device, &s)))
@@ -329,14 +326,16 @@ int nandroid_backup(const char* backup_path, int parts)
         if ((parts & BAK_SDEXT) && ensure_path_mounted("/sd-ext"))
             ui_print("Could not mount sd-ext. sd-ext backup may not be supported on this device. Skipping backup of sd-ext.\n");
         else if ((parts & BAK_SDEXT) && (ret = nandroid_backup_partition(backup_path,"/sd-ext")))
-            return ret;
+            ui_print(warning, "sd-ext");
     }
 
     sync();
     ui_set_background(BACKGROUND_ICON_NONE);
     ui_reset_progress();
-    ui_print("\nBackup complete!\n");
-    return 0;
+    if (ret == 0)
+        ui_print("\nBackup complete!\n");
+
+    return ret;
 }
 
 typedef int (*format_function)(char* root);
