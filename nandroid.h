@@ -7,8 +7,10 @@
 #define BAK_DATA     0x08
 #define BAK_CACHE    0x10
 #define BAK_SDEXT    0x20
-#define BAK_PDS      0x40
-#define BAK_DEVTREE  0x80
+
+#define BAK_PDS     0x100
+#define BAK_DEVTREE 0x200
+#define BAK_WIMAX   0x400
 
 #define BACKUP_ALL   BAK_SYSTEM | BAK_DATA | BAK_BOOT | BAK_DEVTREE | BAK_RECOVERY
 

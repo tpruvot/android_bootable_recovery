@@ -204,7 +204,7 @@ unmount_mounted_volume(const MountedVolume *volume)
 #ifdef BOARD_NEVER_UMOUNT_SYSTEM
     if (strcmp(volume->mount_point, "/system") == 0) {
         printf("Skip system unmount, remount read-only\n");
-        __system("echo 1 > /sys/class/leds/red/brightness");
+        //__system("echo 1 > /sys/class/leds/red/brightness");
         return remount_read_only(volume);
     }
 #endif

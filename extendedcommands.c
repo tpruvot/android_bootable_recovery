@@ -606,7 +606,7 @@ int is_safe_to_format(char* name)
     //property_get("ro.cwm.forbid_format", str, "/misc,/radio,/bootloader,/recovery,/efs");
 
     //hardcoded change for the moment (defy) only allow to real format cache (ext3)
-    property_get("ro.cwm.forbid_format", str, "/misc,/cid,/boot,/pds,/recovery,/system,/data,/sd-ext");
+    property_get("ro.cwm.forbid_format", str, "/misc,/boot,/pds,/recovery,/system,/data,/devtree,/cdrom");
 
     //LOGI("ro.cwm.forbid_format=%s\n", str);
 
@@ -780,22 +780,22 @@ void show_nandroid_advanced_backup_menu(const char* backup_path)
     static char* list[] = {
         "Backup system",
         "Backup data",
-        "Backup cache",
-        "Backup sd-ext",
         "Backup boot",
         "Backup devtree",
         "Backup recovery",
+        "Backup cache",
+        "Backup sd-ext",
         "Backup pds",
+        "Backup wimax",
         NULL
     };
 
-    char tmp[PATH_MAX];
-    if (0 != get_partition_device("pds", tmp)) {
-        // disable pds backup option
-        list[7] = NULL;
-    }
 
-    static char* confirm_backup  = "Confirm backup?";
+    char tmp[PATH_MAX];
+    if (0 != get_partition_device("wimax", tmp)) {
+        // disable pds backup option
+        list[8] = NULL;
+    }
 
     int chosen_item = get_menu_selection(headers, list, 0, 0);
     switch (chosen_item)
@@ -809,27 +809,31 @@ void show_nandroid_advanced_backup_menu(const char* backup_path)
             show_nandroid_advanced_backup_menu(backup_path);
             break;
         case 2:
-            nandroid_backup(backup_path, BAK_CACHE);
-            show_nandroid_advanced_backup_menu(backup_path);
-            break;
-        case 3:
-            nandroid_backup(backup_path, BAK_SDEXT);
-            show_nandroid_advanced_backup_menu(backup_path);
-            break;
-        case 4:
             nandroid_backup(backup_path, BAK_BOOT);
             show_nandroid_advanced_backup_menu(backup_path);
             break;
-        case 5:
+        case 3:
             nandroid_backup(backup_path, BAK_DEVTREE);
             show_nandroid_advanced_backup_menu(backup_path);
             break;
-        case 6:
+        case 4:
             nandroid_backup(backup_path, BAK_RECOVERY);
+            show_nandroid_advanced_backup_menu(backup_path);
+            break;
+        case 5:
+            nandroid_backup(backup_path, BAK_CACHE);
+            show_nandroid_advanced_backup_menu(backup_path);
+            break;
+        case 6:
+            nandroid_backup(backup_path, BAK_SDEXT);
             show_nandroid_advanced_backup_menu(backup_path);
             break;
         case 7:
             nandroid_backup(backup_path, BAK_PDS);
+            show_nandroid_advanced_backup_menu(backup_path);
+            break;
+        case 8:
+            nandroid_backup(backup_path, BAK_WIMAX);
             show_nandroid_advanced_backup_menu(backup_path);
             break;
     }
@@ -880,20 +884,22 @@ void show_nandroid_advanced_restore_menu(const char* path)
                                 NULL
     };
 
-    char* list[] = {        "Restore boot",
-                            "Restore system",
-                            "Restore data",
-                            "Restore cache",
-                            "Restore sd-ext",
-                            "Restore devtree",
-                            "Restore recovery",
-                            "Restore pds",
-                            NULL
+    char* list[] = {
+        "Restore system",
+        "Restore data",
+        "Restore boot",
+        "Restore devtree",
+        "Restore recovery",
+        "Restore cache",
+        "Restore sd-ext",
+        "Restore pds",
+        "Restore wimax",
+        NULL
     };
 
-    if (0 != get_partition_device("pds", tmp)) {
-        // disable pds restore option
-        list[7] = NULL;
+    if (0 != get_partition_device("wimax", tmp)) {
+        // disable wimax restore option
+        list[8] = NULL;
     }
 
     char* name;
@@ -902,7 +908,7 @@ void show_nandroid_advanced_restore_menu(const char* path)
     static char* unavailable = "";
 
     ui_print("%s:\n", basename(dir));
-    for (p=6; p >= 0; p--) {
+    for (p=7; p >= 0; p--) {
         if (list[p] != NULL && strlen(list[p])) {
             name = list[p] + strlen("Restore ");
             sprintf(tmp, "%s/%s.img", dir, name);
@@ -924,36 +930,40 @@ void show_nandroid_advanced_restore_menu(const char* path)
     switch (chosen_item)
     {
         case 0:
-            if (confirm_selection(confirm_restore, "Yes - Restore boot"))
-                nandroid_restore(dir, BAK_BOOT);
-            break;
-        case 1:
             if (confirm_selection(confirm_restore, "Yes - Restore system"))
                 nandroid_restore(dir, BAK_SYSTEM);
             break;
-        case 2:
+        case 1:
             if (confirm_selection(confirm_restore, "Yes - Restore data"))
                 nandroid_restore(dir, BAK_DATA);
             break;
+        case 2:
+            if (confirm_selection(confirm_restore, "Yes - Restore boot"))
+                nandroid_restore(dir, BAK_BOOT);
+            break;
         case 3:
-            if (confirm_selection(confirm_restore, "Yes - Restore cache"))
-                nandroid_restore(dir, BAK_CACHE);
-            break;
-        case 4:
-            if (confirm_selection(confirm_restore, "Yes - Restore sd-ext"))
-                nandroid_restore(dir, BAK_SDEXT);
-            break;
-        case 5:
             if (confirm_selection(confirm_restore, "Yes - Restore devtree"))
                 nandroid_restore(dir, BAK_DEVTREE);
             break;
-        case 6:
+        case 4:
             if (confirm_selection(confirm_restore, "Yes - Restore recovery"))
                 nandroid_restore(dir, BAK_RECOVERY);
+            break;
+        case 5:
+            if (confirm_selection(confirm_restore, "Yes - Restore cache"))
+                nandroid_restore(dir, BAK_CACHE);
+            break;
+        case 6:
+            if (confirm_selection(confirm_restore, "Yes - Restore sd-ext"))
+                nandroid_restore(dir, BAK_SDEXT);
             break;
         case 7:
             if (confirm_selection(confirm_restore, "Yes - Restore pds"))
                 nandroid_restore(dir, BAK_PDS);
+            break;
+        case 8:
+            if (confirm_selection(confirm_restore, "Yes - Restore wimax"))
+                nandroid_restore(dir, BAK_WIMAX);
             break;
     }
 }
@@ -1154,9 +1164,9 @@ void show_advanced_menu()
             {
                 __system("killall adbd.root");
                 __system("killall adbd");
-                LOGI("\nkilling adbd...\n");
-                __system("ps w | grep adbd | grep -v grep >> /tmp/recovery.log");
-                ui_printlogtail(2);
+                LOGI("\nStopping adbd...\n");
+                //__system("ps w | grep adbd | grep -v grep >> /tmp/recovery.log");
+                //ui_printlogtail(2);
                 break;
             }
             case 7:

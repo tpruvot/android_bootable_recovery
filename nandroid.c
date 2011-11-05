@@ -10,7 +10,7 @@
 #include <sys/types.h>
 #include <time.h>
 #include <unistd.h>
-
+#include <libgen.h>
 #include <sys/wait.h>
 #include <sys/limits.h>
 #include <dirent.h>
@@ -163,6 +163,9 @@ static nandroid_backup_handler get_backup_handler(const char *backup_path) {
 
 int nandroid_backup_partition_extended(const char* backup_path, const char* mount_point, int umount_when_finished) {
     int ret = 0;
+
+    ui_print("%s:\n", basename(backup_path));
+
     char* name = basename(mount_point);
 
     struct stat file_info;
@@ -181,7 +184,7 @@ int nandroid_backup_partition_extended(const char* backup_path, const char* moun
     Volume *v = volume_for_path(mount_point);
     MountedVolume *mv = NULL;
     if (v != NULL)
-        mv = find_mounted_volume_by_mount_point(v->mount_point);
+        mv = (MountedVolume*) find_mounted_volume_by_mount_point(v->mount_point);
     if (mv == NULL || mv->filesystem == NULL)
         sprintf(tmp, "%s/%s.auto", backup_path, name);
     else
@@ -292,28 +295,32 @@ int nandroid_backup(const char* backup_path, int parts)
     if ((parts & BAK_RECOVERY) && (ret = nandroid_backup_partition(backup_path,"/recovery")))
         ui_print(warning, "recovery");
 
-    Volume *vol = volume_for_path("/pds");
-    if (parts & BAK_PDS)
+/*
+    Volume *vol = volume_for_path("/wimax");
+    if (parts & BAK_WIMAX)
     {
         if (vol != NULL && 0 == statfs(vol->device, &s))
         {
             char serialno[PROPERTY_VALUE_MAX];
-            ui_print("Backing up PDS...\n");
+            ui_print("Backing up WiMAX...\n");
             serialno[0] = 0;
             property_get("ro.serialno", serialno, "");
-            sprintf(tmp, "%s/pds.%s.img", backup_path, serialno);
+            sprintf(tmp, "%s/wimax.%s.img", backup_path, serialno);
             ret = backup_raw_partition(vol->fs_type, vol->device, tmp);
             ui_print("Generating pds.%s md5 sum...\n", serialno);
-            sprintf(tmp, "nandroid-md5.sh '%s' 'pds.%s'", backup_path, serialno);
+            sprintf(tmp, "nandroid-md5.sh '%s' 'wimax.%s'", backup_path, serialno);
             if (__system(tmp))
                 ui_print("Error while generating pds.%s md5 sum!\n", serialno);
             if (0 != ret)
-                ui_print(warning, "pds");
-                //return print_and_error("Error while dumping PDS image!\n");
+                ui_print(warning, "WiMAX");
+                //return print_and_error("Error while dumping WiMAX image!\n");
         }
     }
+*/
+    if ((parts & BAK_PDS) && (ret = nandroid_backup_partition_extended(backup_path,"/pds", 0)))
+        ui_print(warning, "pds");
 
-    vol = volume_for_path("/sd-ext");
+    Volume *vol = volume_for_path("/sd-ext");
     if ((parts & BAK_SDEXT) && (vol == NULL || 0 != statfs(vol->device, &s)))
     {
         ui_print("No sd-ext found. Skipping backup of sd-ext.\n");
@@ -462,20 +469,24 @@ int nandroid_restore_partition_extended(const char* backup_path, const char* mou
     int callback = stat("/sdcard/clockworkmod/.hidenandroidprogress", &file_info) != 0;
 
     ui_print("Restoring %s...\n", name);
+
+    if (strcmp(mount_point,"/sd-ext") == 0) {
+        ui_print("Formatting %s, please wait...\n", name);
+    }
     if (backup_filesystem == NULL) {
         if (0 != (ret = format_volume(mount_point))) {
-            ui_print("Error while formatting %s!\n", mount_point);
+            ui_print("Error while formatting volume %s!\n", mount_point);
             return ret;
         }
     }
     else if (0 != (ret = format_device(device, mount_point, backup_filesystem))) {
-        ui_print("Error while formatting %s!\n", mount_point);
+        ui_print("Error while formatting device %s!\n", mount_point);
         ui_printlogtail(4);
         return ret;
     }
 
     if (0 != (ret = ensure_path_mounted(mount_point)) ) {
-        if (backup_filesystem)
+        if (strcmp(vol->fs_type,"emmc") != 0)
             ui_print("Can't mount %s!\n", mount_point);
         return ret;
     }
@@ -493,6 +504,11 @@ int nandroid_restore_partition_extended(const char* backup_path, const char* mou
 
     if (umount_when_finished) {
         ensure_path_unmounted(mount_point);
+    }
+
+    if (ret == 0 && strcmp(mount_point,"/pds") == 0) {
+        ensure_path_mounted("/data");
+        __system("cp /tmp/pds.img /data/pds.img");
     }
     
     return 0;
@@ -554,13 +570,15 @@ int nandroid_restore(const char* backup_path, int parts)
     if (!(parts & BAK_DATA)) {
        sprintf(tmp, fmt, backup_path, "data");
        __system(tmp);
+       sprintf(tmp, fmt, backup_path, "android_secure");
+       __system(tmp);
     }
     if (!(parts & BAK_CACHE)) {
        sprintf(tmp, fmt, backup_path, "cache");
        __system(tmp);
     }
     if (!(parts & BAK_SDEXT)) {
-       sprintf(tmp, fmt, backup_path, "sdext");
+       sprintf(tmp, fmt, backup_path, "sd-ext");
        __system(tmp);
     }
     if (!(parts & BAK_DEVTREE)) {
@@ -585,75 +603,70 @@ int nandroid_restore(const char* backup_path, int parts)
     //BACKUP START HERE
 
     if ((parts & BAK_BOOT) && NULL != volume_for_path("/boot") && 0 != (ret = nandroid_restore_partition(backup_path, "/boot")))
-        return ret;
-    
+        ui_print("\nProblem while restoring boot !\n");
+
+/*
     struct stat s;
-    Volume *vol = volume_for_path("/pds");
-    if ((parts & BAK_PDS) && vol != NULL && 0 == stat(vol->device, &s))
+    Volume *vol = volume_for_path("/wimax");
+    if ((parts & BAK_WIMAX) && vol != NULL && 0 == stat(vol->device, &s))
     {
         char serialno[PROPERTY_VALUE_MAX];
         
         serialno[0] = 0;
         property_get("ro.serialno", serialno, "");
-        sprintf(tmp, "%s/pds.%s.img", backup_path, serialno);
+        sprintf(tmp, "%s/wimax.%s.img", backup_path, serialno);
 
         struct stat st;
         if (0 != stat(tmp, &st))
         {
-            ui_print("WARNING: PDS partition exists, but nandroid\n");
-            ui_print("         backup does not contain PDS image.\n");
+            ui_print("WARNING: WiMAX partition exists, but nandroid\n");
+            ui_print("         backup does not contain WiMAX image.\n");
             ui_print("         You should create a new backup to\n");
-            ui_print("         protect your PDS IMEI.\n");
+            ui_print("         protect your WiMAX keys.\n");
         }
         else
         {
-#if 0
-            ui_print("Erasing PDS before restore...\n");
-            if (0 != (ret = format_volume("/pds")))
-                return print_and_error("Error while formatting pds!\n");
-#endif
-#if 0
-
-DANGEROUS, DISABLED
-
+            ui_print("Erasing WiMAX before restore...\n");
+            if (0 != (ret = format_volume("/wimax")))
+                return print_and_error("Error while formatting wimax!\n");
             ui_print("Restoring PDS image...\n");
             if (0 != (ret = restore_raw_partition(vol->fs_type, vol->device, tmp)))
                 return ret;
-#endif
         }
     }
+*/
 
     if ((parts & BAK_SYSTEM) && 0 != (ret = nandroid_restore_partition(backup_path, "/system")))
-        return ret;
+        ui_print("\nProblem while restoring system !\n");
 
     if ((parts & BAK_DATA) && 0 != (ret = nandroid_restore_partition(backup_path, "/data")))
-        return ret;
-        
+        ui_print("\nProblem while restoring data !\n");
+
     if (has_datadata()) {
         if ((parts & BAK_DATA) && 0 != (ret = nandroid_restore_partition(backup_path, "/datadata")))
-            return ret;
+            ui_print("\nProblem while restoring datadata !\n");
     }
 
     if ((parts & BAK_DATA) && 0 != (ret = nandroid_restore_partition_extended(backup_path, "/sdcard/.android_secure", 0)))
-        return ret;
+        ui_print("\nProblem while restoring android_secure !\n");
 
     if ((parts & BAK_CACHE) && 0 != (ret = nandroid_restore_partition_extended(backup_path, "/cache", 0)))
         ui_print("\nProblem while restoring cache !\n");
 
-    if ((parts & BAK_SDEXT) && 0 != (ret = nandroid_restore_partition(backup_path, "/sd-ext")))
+    if ((parts & BAK_SDEXT) && 0 != (ret = nandroid_restore_partition_extended(backup_path, "/sd-ext", 1)))
         ui_print("\nProblem while restoring sd-ext !\n");
 
-    if ((parts & BAK_DEVTREE) && 0 != (ret = nandroid_restore_partition_extended(backup_path, "/devtree", 0)))
+    if ((parts & BAK_DEVTREE) && 0 != (ret = nandroid_restore_partition(backup_path, "/devtree")))
         ui_print("\nProblem while restoring devtree !\n");
 
-    if ((parts & BAK_RECOVERY) && 0 != (ret = nandroid_restore_partition_extended(backup_path, "/recovery", 0)))
+    if ((parts & BAK_RECOVERY) && 0 != (ret = nandroid_restore_partition(backup_path, "/recovery")))
         ui_print("\nProblem while restoring recovery !\n");
 
-//    if ((parts & BAK_PDS) && 0 != (ret = nandroid_restore_partition_extended(backup_path, "/pds", 0)))
-//        return ret;
+    if ((parts & BAK_PDS) && 0 != (ret = nandroid_restore_partition_extended(backup_path, "/pds", 1)))
+        ui_print("\nProblem while restoring pds !\n");
 
     sync();
-    //ui_set_background(BACKGROUND_ICON_NONE);
+    ui_set_background(BACKGROUND_ICON_NONE);
     ui_reset_progress();
     if (ret == 0)
         ui_print("\nRestore complete!\n");
@@ -664,7 +677,9 @@ DANGEROUS, DISABLED
 int nandroid_usage()
 {
     printf("Usage: nandroid backup\n");
-    printf("Usage: nandroid restore <directory>\n");
+    printf(" nandroid backup\n");
+    printf(" nandroid restore <directory>\n");
+    printf(" nandroid restore-boot <directory>\n");
     return 1;
 }
 
@@ -672,7 +687,7 @@ int nandroid_main(int argc, char** argv)
 {
     if (argc > 3 || argc < 2)
         return nandroid_usage();
-    
+
     if (strcmp("backup", argv[1]) == 0)
     {
         if (argc != 2)
@@ -690,6 +705,14 @@ int nandroid_main(int argc, char** argv)
         //return nandroid_restore(argv[2], 1, 1, 1, 1, 1, 0);
 
         return nandroid_restore(argv[2], BAK_SYSTEM | BAK_DATA);
+    }
+
+    if (strcmp("restore-boot", argv[1]) == 0)
+    {
+        if (argc != 3)
+            return nandroid_usage();
+
+        return nandroid_restore(argv[2], BAK_BOOT | BAK_DEVTREE | BAK_RECOVERY);
     }
     return nandroid_usage();
 }

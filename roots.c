@@ -217,7 +217,7 @@ int ensure_path_mounted_at_mount_point(const char* path, const char* mount_point
         #ifdef BOARD_NEVER_UMOUNT_SYSTEM
         if (strcmp(v->mount_point, "/system") == 0) {
             __system("mount -o remount,rw /system");
-            __system("echo 0 > /sys/class/leds/red/brightness");
+            //__system("echo 0 > /sys/class/leds/red/brightness");
         }
         #endif
 
