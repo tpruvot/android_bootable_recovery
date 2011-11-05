@@ -10,7 +10,7 @@
 #define BAK_PDS      0x40
 #define BAK_DEVTREE  0x80
 
-#define BACKUP_ALL   BAK_SYSTEM | BAK_DATA | BAK_BOOT | BAK_DEVTREE | BAK_RECOVERY | BAK_PDS
+#define BACKUP_ALL   BAK_SYSTEM | BAK_DATA | BAK_BOOT | BAK_DEVTREE | BAK_RECOVERY
 
 int nandroid_main(int argc, char** argv);
 int nandroid_backup(const char* backup_path, int parts);
