@@ -283,7 +283,7 @@ char* choose_file_menu(const char* directory, const char* fileExtensionOrDirecto
             int chosen_item = get_menu_selection((char**) headers, list, 0, 0);
             if (chosen_item == GO_BACK)
                 break;
-            static char ret[PATH_MAX]="";
+            static char ret[PATH_MAX];
             if (chosen_item < numDirs)
             {
                 char* subret = choose_file_menu(dirs[chosen_item], fileExtensionOrDirectory, headers);
@@ -305,7 +305,10 @@ char* choose_file_menu(const char* directory, const char* fileExtensionOrDirecto
     if (files) free_string_array(files);
     if (dirs) free_string_array(dirs);
 
-    sprintf(file_menu_ret, "%s", return_value);
+    if (return_value)
+        sprintf(file_menu_ret, "%s", return_value);
+    else
+        return NULL;
 
     return &file_menu_ret[0];
 }
@@ -323,7 +326,7 @@ void show_choose_zip_menu(const char *mount_point)
     };
 
     char* file = choose_file_menu(mount_point, ".zip", headers);
-    if (file == NULL)
+    if (file == NULL || strlen(file) == 0)
         return;
     static char* confirm_install  = "Confirm install?";
     static char confirm[PATH_MAX];
@@ -347,7 +350,7 @@ void show_nandroid_restore_menu(const char* path)
     char tmp[PATH_MAX];
     sprintf(tmp, "%s/clockworkmod/backup/", path);
     char* file = choose_file_menu(tmp, NULL, headers);
-    if (file == NULL)
+    if (file == NULL || strlen(file) == 0)
         return;
 
     if (confirm_selection("Confirm restore?", "Yes - Restore")) {
@@ -876,7 +879,7 @@ void show_nandroid_advanced_restore_menu(const char* path)
     static char tmp[PATH_MAX];
     sprintf(tmp, "%s/clockworkmod/backup/", path);
     char* dir = choose_file_menu(tmp, NULL, advancedheaders);
-    if (dir == NULL)
+    if (dir == NULL || strlen(dir) == 0)
         return;
 
     const char* headers[] = {   "Nandroid Advanced Restore",
