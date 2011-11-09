@@ -170,11 +170,11 @@ static void draw_text_line(int row, const char* t) {
   }
 }
 
-#define MENU_TEXT_COLOR 255, 160, 49, 255 //orange
+//#define MENU_TEXT_COLOR 255, 160, 49, 255 //orange
 //#define MENU_TEXT_COLOR 255, 1, 1, 200 //blue
 //#define MENU_TEXT_COLOR 7, 255, 1, 255 //lime
 
-//#define MENU_TEXT_COLOR 0, 191, 255, 255 //cyan
+#define MENU_TEXT_COLOR 0, 191, 255, 255 //cyan
 #define NORMAL_TEXT_COLOR 200, 200, 200, 255
 #define HEADER_TEXT_COLOR NORMAL_TEXT_COLOR
 
