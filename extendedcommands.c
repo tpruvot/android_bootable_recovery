@@ -39,6 +39,7 @@
 #include "mtdutils/mtdutils.h"
 #include "mmcutils/mmcutils.h"
 #include "make_ext4fs.h"
+#include "bmlutils/bmlutils.h"
 
 #include EXPAND(BUILD_TOP/external/yaffs2/yaffs2/utils/mkyaffs2image.h)
 #include EXPAND(BUILD_TOP/external/yaffs2/yaffs2/utils/unyaffs.h)
@@ -454,6 +455,18 @@ int format_device(const char *device, const char *path, const char *fs_type) {
         // you can't format the ramdisk.
         LOGE("can't format_volume \"%s\"", path);
         return -1;
+    }
+
+    if (strcmp(fs_type, "rfs") == 0) {
+        if (ensure_path_unmounted(path) != 0) {
+            LOGE("format_volume failed to unmount \"%s\"\n", v->mount_point);
+            return -1;
+        }
+        if (0 != format_rfs_device(device, path)) {
+            LOGE("format_volume: format_rfs_device failed on %s\n", device);
+            return -1;
+        }
+        return 0;
     }
 
     if (strcmp(v->mount_point, path) != 0) {

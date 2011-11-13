@@ -21,7 +21,7 @@
 #include <sys/wait.h>
 
 extern int __system(const char *command);
-#define BML_UNLOCK_ALL				0x8A29		///< unlock all partition RO -> RW
+#define BML_UNLOCK_ALL              0x8A29 ///< unlock all partition RO -> RW
 
 #ifndef BOARD_BML_BOOT
 #define BOARD_BML_BOOT              "/dev/block/bml7"
@@ -56,10 +56,10 @@ static int restore_internal(const char* bml, const char* filename)
         if (write(dstfd, buf, 4096) < 4096)
             return 5;
     } while(bytes_read == 4096);
-    
+
     close(dstfd);
     close(srcfd);
-    
+
     return 0;
 }
 
@@ -170,4 +170,36 @@ int cmd_bml_mount_partition(const char *partition, const char *mount_point, cons
 int cmd_bml_get_partition_device(const char *partition, char *device)
 {
     return -1;
+}
+
+int format_rfs_device (const char *device, const char *path) {
+    const char *fatsize = "32";
+    const char *sectorsize = "1";
+
+    if (strcmp(path, "/datadata") == 0 || strcmp(path, "/cache") == 0) {
+        fatsize = "16";
+    }
+
+    // Just in case /data sector size needs to be altered
+    else if (strcmp(path, "/data") == 0 ) {
+        sectorsize = "1";
+    }
+
+    // dump 10KB of zeros to partition before format due to fat.format bug
+    char cmd[PATH_MAX];
+
+    sprintf(cmd, "/sbin/dd if=/dev/zero of=%s bs=4096 count=10", device);
+    if(__system(cmd)) {
+        printf("failure while zeroing rfs partition.\n");
+        return -1;
+    }
+
+    // Run fat.format
+    sprintf(cmd, "/sbin/fat.format -F %s -S 4096 -s %s %s", fatsize, sectorsize, device);
+    if(__system(cmd)) {
+        printf("failure while running fat.format\n");
+        return -1;
+    }
+
+    return 0;
 }
