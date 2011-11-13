@@ -292,6 +292,9 @@ int nandroid_backup(const char* backup_path, int parts)
     if ((parts & BAK_DEVTREE) && (ret = nandroid_backup_partition(backup_path,"/devtree")))
         ui_print(warning, "devtree");
 
+    if ((parts & BAK_LOGO) && (ret = nandroid_backup_partition(backup_path,"/logo")))
+        ui_print(warning, "logo");
+
     if ((parts & BAK_RECOVERY) && (ret = nandroid_backup_partition(backup_path,"/recovery")))
         ui_print(warning, "recovery");
 
@@ -589,6 +592,10 @@ int nandroid_restore(const char* backup_path, int parts)
        sprintf(tmp, fmt, backup_path, "recovery");
        __system(tmp);
     }
+    if (!(parts & BAK_LOGO)) {
+       sprintf(tmp, fmt, backup_path, "logo");
+       __system(tmp);
+    }
     if (!(parts & BAK_PDS)) {
        sprintf(tmp, fmt, backup_path, "pds");
        __system(tmp);
@@ -662,6 +669,9 @@ int nandroid_restore(const char* backup_path, int parts)
     if ((parts & BAK_RECOVERY) && 0 != (ret = nandroid_restore_partition(backup_path, "/recovery")))
         ui_print("\nProblem while restoring recovery !\n");
 
+    if ((parts & BAK_LOGO) && 0 != (ret = nandroid_restore_partition(backup_path, "/logo")))
+        ui_print("\nProblem while restoring logo !\n");
+
     if ((parts & BAK_PDS) && 0 != (ret = nandroid_restore_partition_extended(backup_path, "/pds", 1)))
         ui_print("\nProblem while restoring pds !\n");
 
@@ -702,7 +712,6 @@ int nandroid_main(int argc, char** argv)
     {
         if (argc != 3)
             return nandroid_usage();
-        //return nandroid_restore(argv[2], 1, 1, 1, 1, 1, 0);
 
         return nandroid_restore(argv[2], BAK_SYSTEM | BAK_DATA);
     }
@@ -712,7 +721,7 @@ int nandroid_main(int argc, char** argv)
         if (argc != 3)
             return nandroid_usage();
 
-        return nandroid_restore(argv[2], BAK_BOOT | BAK_DEVTREE | BAK_RECOVERY);
+        return nandroid_restore(argv[2], BAK_BOOT | BAK_DEVTREE | BAK_RECOVERY | BAK_LOGO);
     }
     return nandroid_usage();
 }
