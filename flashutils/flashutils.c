@@ -64,6 +64,7 @@ static int detect_partition(const char *partitionType, const char *partition)
 
     return type;
 }
+
 int restore_raw_partition(const char* partitionType, const char *partition, const char *filename)
 {
     int type = detect_partition(partitionType, partition);

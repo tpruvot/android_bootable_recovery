@@ -513,7 +513,6 @@ int nandroid_restore_partition_extended(const char* backup_path, const char* mou
         ensure_path_mounted("/data");
         __system("cp /tmp/pds.img /data/pds.img");
     }
-    
     return 0;
 }
 
@@ -528,12 +527,17 @@ int nandroid_restore_partition(const char* backup_path, const char* root) {
     if (strcmp(vol->fs_type, "mtd") == 0 ||
             strcmp(vol->fs_type, "bml") == 0 ||
             strcmp(vol->fs_type, "emmc") == 0) {
-        int ret;
+        int ret, erase=1;
         const char* name = basename(root);
-        ui_print("Erasing %s before restore...\n", name);
-        if (0 != (ret = format_volume(root))) {
-            ui_print("Error while erasing %s image!", name);
-            return ret;
+        if (!strcmp(name, "devtree") || !strcmp(name, "logo")) {
+            erase=0;
+        }
+        if (erase) {
+            ui_print("Erasing %s before restore...\n", name);
+            if (0 != (ret = format_volume(root))) {
+                ui_print("Error while erasing %s image!", name);
+                return ret;
+            }
         }
         sprintf(tmp, "%s%s.img", backup_path, root);
         ui_print("Restoring %s image...\n", name);
@@ -554,7 +558,7 @@ int nandroid_restore(const char* backup_path, int parts)
 
     if (ensure_path_mounted(backup_path) != 0)
         return print_and_error("Can't mount backup path\n");
-    
+
     char tmp[PATH_MAX];
 
     ui_print("Checking MD5 sums...\n");
@@ -618,7 +622,6 @@ int nandroid_restore(const char* backup_path, int parts)
     if ((parts & BAK_WIMAX) && vol != NULL && 0 == stat(vol->device, &s))
     {
         char serialno[PROPERTY_VALUE_MAX];
-        
         serialno[0] = 0;
         property_get("ro.serialno", serialno, "");
         sprintf(tmp, "%s/wimax.%s.img", backup_path, serialno);

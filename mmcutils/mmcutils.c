@@ -32,6 +32,7 @@
 #include <unistd.h>
 #include <dirent.h>
 #include <string.h>
+#include <libgen.h>
 #include <errno.h>
 #include <sys/types.h>
 #include <sys/reboot.h>
@@ -497,6 +498,10 @@ mmc_raw_dump_internal (const char* in_file, const char *out_file) {
     fseek(in, 0L, SEEK_END);
     sz = ftell(in);
     fseek(in, 0L, SEEK_SET);
+
+    // defy hack to support part of partition
+    if (strcmp("logo", basename(in_file))==0 && sz > 0x40000)
+        sz = 0x40000;
 
     if (sz % 512)
     {
