@@ -422,23 +422,36 @@ int confirm_selection(const char* title, const char* confirm)
         return 1;
 
     const char* confirm_headers[]  = {  title, "  THIS CAN NOT BE UNDONE.", "", NULL };
-    const char* items[] = {
-                       "No",
-                      "No",
-                      "No",
-                      "No",
-                      "No",
-                      "No",
-                      "No",
-                      confirm, //" Yes -- wipe partition",   // [7
-                      "No",
-                      "No",
-                      "No",
-                      NULL
-    };
 
-    int chosen_item = get_menu_selection((char**) confirm_headers, (char**) items, 0, 0);
-    return chosen_item == 7;
+    if (0 == stat("/sdcard/clockworkmod/.one_confirm", &info)) {
+
+        char* items[] = {
+            "No",
+            confirm, //" Yes -- wipe partition", [1]
+        };
+        int chosen_item = get_menu_selection((char**) confirm_headers, (char**) items, 0, 0);
+        return (chosen_item == 1);
+
+    } else {
+
+        const char* items[] = {
+            "No",
+            "No",
+            "No",
+            "No",
+            "No",
+            "No",
+            "No",
+            confirm, //" Yes -- wipe partition", [7]
+            "No",
+            "No",
+            "No",
+            NULL
+        };
+        int chosen_item = get_menu_selection((char**) confirm_headers, (char**) items, 0, 0);
+        return (chosen_item == 7);
+    }
+
 }
 
 #define MKE2FS_BIN      "/sbin/mke2fs"
