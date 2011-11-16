@@ -29,9 +29,9 @@ LOCAL_MODULE := recovery
 
 LOCAL_FORCE_STATIC_EXECUTABLE := true
 
-RECOVERY_NAME := CyanogenDefy Recovery
+RECOVERY_NAME := Bootmenu ICS Recovery
 
-RECOVERY_VERSION := $(RECOVERY_NAME) v5.0.3.2
+RECOVERY_VERSION := $(RECOVERY_NAME) v1.0
 
 LOCAL_CFLAGS += -DRECOVERY_VERSION="$(RECOVERY_VERSION)"
 
@@ -167,6 +167,7 @@ include $(commands_recovery_local_path)/edify/Android.mk
 include $(commands_recovery_local_path)/updater/Android.mk
 include $(commands_recovery_local_path)/applypatch/Android.mk
 include $(commands_recovery_local_path)/utilities/Android.mk
+include $(commands_recovery_local_path)/libreboot/Android.mk
 commands_recovery_local_path :=
 
 endif   # TARGET_ARCH == arm
