@@ -72,10 +72,13 @@ LOCAL_MODULE := updater
 
 LOCAL_FORCE_STATIC_EXECUTABLE := true
 
+LOCAL_MODULE_PATH=utilities
+LOCAL_MODULE_STEM=update-binary
+
 include $(BUILD_EXECUTABLE)
 
 
-file := $(PRODUCT_OUT)/utilities/update-binary
-ALL_PREBUILT += $(file)
-$(file) : $(TARGET_OUT)/bin/updater | $(ACP)
-	$(transform-prebuilt-to-target)
+#file := $(PRODUCT_OUT)/utilities/update-binary
+#ALL_PREBUILT += $(file)
+#$(file) : $(TARGET_OUT)/bin/updater | $(ACP)
+#	$(transform-prebuilt-to-target)

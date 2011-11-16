@@ -23,13 +23,17 @@
 #include <ctype.h>
 
 #include "mtdutils/mtdutils.h"
+#include "flashutils/flashutils.h"
 #include "mounts.h"
 #include "roots.h"
 #include "common.h"
-#include "make_ext4fs.h"
-
-#include "flashutils/flashutils.h"
 #include "extendedcommands.h"
+
+#ifdef USE_EXT4
+#include "make_ext4fs.h"
+//ICS Correct ext4 prototype
+#define make_ext4fs(dev, a, b, c, d, e)  make_ext4fs_internal(dev, a, b, c, d, e, 0, 0, 0)
+#endif
 
 int num_volumes;
 Volume* device_volumes;
@@ -383,6 +387,7 @@ int format_volume(const char* volume) {
         return 0;
     }
 
+#ifdef USE_EXT4
     if (strcmp(v->fs_type, "ext4") == 0) {
         reset_ext4fs_info();
         int result = make_ext4fs(v->device, NULL, NULL, 0, 0, 0);
@@ -392,9 +397,10 @@ int format_volume(const char* volume) {
         }
         return 0;
     }
+#endif
 
 #if 0
-    LOGE("format_volume: fs_type \"%s\" unsupported\n", v->fs_type);
+    LOGW("format_volume: fs_type \"%s\" unsupported\n", v->fs_type);
     return -1;
 #endif
     return format_unknown_device(v->device, volume, v->fs_type);

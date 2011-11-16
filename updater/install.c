@@ -40,6 +40,8 @@
 
 #ifdef USE_EXT4
 #include "make_ext4fs.h"
+//ICS Correct ext4 prototype
+#define make_ext4fs(dev, a, b, c, d, e)  make_ext4fs_internal(dev, a, b, c, d, e, 0, 0, 0)
 #endif
 
 // mount(fs_type, partition_type, location, mount_point)

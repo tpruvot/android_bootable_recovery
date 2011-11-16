@@ -8,7 +8,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/reboot.h>
-#include <reboot/reboot.h>
 #include <sys/types.h>
 #include <time.h>
 #include <unistd.h>
@@ -38,11 +37,19 @@
 #include <libgen.h>
 #include "mtdutils/mtdutils.h"
 #include "mmcutils/mmcutils.h"
-#include "make_ext4fs.h"
 #include "bmlutils/bmlutils.h"
 
 //#include EXPAND(BUILD_TOP/external/yaffs2/yaffs2/utils/unyaffs.h)
 #include "yaffs2.h"
+
+#ifdef USE_EXT4
+#include "make_ext4fs.h"
+//ICS Correct ext4 prototype
+#define make_ext4fs(dev, a, b, c, d, e)  make_ext4fs_internal(dev, a, b, c, d, e, 0, 0, 0)
+#endif
+
+//custom libreboot
+extern int reboot_wrapper(const char* reason);
 
 int signature_check_enabled = 1;
 int script_assert_enabled = 1;
@@ -501,6 +508,7 @@ int format_device(const char *device, const char *path, const char *fs_type) {
         return 0;
     }
 
+#ifdef USE_EXT4
     if (strcmp(fs_type, "ext4") == 0) {
         reset_ext4fs_info();
         int result = make_ext4fs(device, NULL, NULL, 0, 0, 0);
@@ -510,6 +518,7 @@ int format_device(const char *device, const char *path, const char *fs_type) {
         }
         return 0;
     }
+#endif
 
     return format_unknown_device(device, path, fs_type);
 }
