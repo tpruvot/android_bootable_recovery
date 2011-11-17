@@ -61,12 +61,15 @@ static const char *COMMAND_FILE = "/cache/recovery/command";
 static const char *INTENT_FILE = "/cache/recovery/intent";
 static const char *LOG_FILE = "/cache/recovery/log";
 static const char *LAST_LOG_FILE = "/cache/recovery/last_log";
+static const char *CACHE_ROOT = "/cache";
 static const char *SDCARD_ROOT = "/sdcard";
 static int allow_display_toggle = 1;
 static int poweroff = 0;
 static const char *SDCARD_PACKAGE_FILE = "/sdcard/update.zip";
 static const char *TEMPORARY_LOG_FILE = "/tmp/recovery.log";
 static const char *SIDELOAD_TEMP_DIR = "/tmp/sideload";
+
+extern UIParameters ui_parameters;    // from ui.c
 
 /*
  * The recovery tool communicates with the main system through /cache files.
@@ -124,33 +127,13 @@ static const char *SIDELOAD_TEMP_DIR = "/tmp/sideload";
  *    8g. finish_recovery() erases BCB
  *        -- after this, rebooting will (try to) restart the main system --
  * 9. main() calls reboot() to boot main system
- *
- * SECURE FILE SYSTEMS ENABLE/DISABLE
- * 1. user selects "enable encrypted file systems"
- * 2. main system writes "--set_encrypted_filesystems=on|off" to
- *    /cache/recovery/command
- * 3. main system reboots into recovery
- * 4. get_args() writes BCB with "boot-recovery" and
- *    "--set_encrypted_filesystems=on|off"
- *    -- after this, rebooting will restart the transition --
- * 5. read_encrypted_fs_info() retrieves encrypted file systems settings from /data
- *    Settings include: property to specify the Encrypted FS istatus and
- *    FS encryption key if enabled (not yet implemented)
- * 6. erase_volume() reformats /data
- * 7. erase_volume() reformats /cache
- * 8. restore_encrypted_fs_info() writes required encrypted file systems settings to /data
- *    Settings include: property to specify the Encrypted FS status and
- *    FS encryption key if enabled (not yet implemented)
- * 9. finish_recovery() erases BCB
- *    -- after this, rebooting will restart the main system --
- * 10. main() calls reboot() to boot main system
  */
 
 static const int MAX_ARG_LENGTH = 4096;
 static const int MAX_ARGS = 100;
 
 // open a given path, mounting partitions as necessary
-static FILE*
+FILE*
 fopen_path(const char *path, const char *mode) {
     if (ensure_path_mounted(path) != 0) {
         LOGE("Can't mount %s\n", path);
@@ -468,6 +451,16 @@ get_menu_selection(char** headers, char** items, int menu_only,
     while (chosen_item < 0 && chosen_item != GO_BACK) {
         int key = ui_wait_key();
         int visible = ui_text_visible();
+
+        if (key == -1) {   // ui_wait_key() timed out
+            if (ui_text_ever_visible()) {
+                continue;
+            } else {
+                LOGI("timed out waiting for key input; rebooting.\n");
+                ui_end_menu();
+                return ITEM_REBOOT;
+            }
+        }
 
         int action = device_handle_key(key, visible);
 
@@ -827,6 +820,7 @@ main(int argc, char **argv) {
     freopen(TEMPORARY_LOG_FILE, "a", stderr); setbuf(stderr, NULL);
     printf("Starting recovery on %s", ctime(&start));
 
+    device_ui_init(&ui_parameters);
     ui_init();
     ui_print(EXPAND(RECOVERY_VERSION)"\n");
     load_volume_table();
@@ -837,10 +831,7 @@ main(int argc, char **argv) {
     int previous_runs = 0;
     const char *send_intent = NULL;
     const char *update_package = NULL;
-    const char *encrypted_fs_mode = NULL;
     int wipe_data = 0, wipe_cache = 0;
-    int toggle_secure_fs = 0;
-    encrypted_fs_info encrypted_fs_data;
 
     LOGI("Checking arguments.\n");
     int arg;
@@ -855,7 +846,6 @@ main(int argc, char **argv) {
 #endif
 		break;
         case 'c': wipe_cache = 1; break;
-        case 'e': encrypted_fs_mode = optarg; toggle_secure_fs = 1; break;
         case 't': ui_show_text(1); break;
         case '?':
             LOGE("Invalid command argument\n");
@@ -893,43 +883,7 @@ main(int argc, char **argv) {
 
     int status = INSTALL_SUCCESS;
     
-    if (toggle_secure_fs) {
-        if (strcmp(encrypted_fs_mode,"on") == 0) {
-            encrypted_fs_data.mode = MODE_ENCRYPTED_FS_ENABLED;
-            ui_print("Enabling Encrypted FS.\n");
-        } else if (strcmp(encrypted_fs_mode,"off") == 0) {
-            encrypted_fs_data.mode = MODE_ENCRYPTED_FS_DISABLED;
-            ui_print("Disabling Encrypted FS.\n");
-        } else {
-            ui_print("Error: invalid Encrypted FS setting.\n");
-            status = INSTALL_ERROR;
-        }
-
-        // Recovery strategy: if the data partition is damaged, disable encrypted file systems.
-        // This preventsthe device recycling endlessly in recovery mode.
-        if ((encrypted_fs_data.mode == MODE_ENCRYPTED_FS_ENABLED) &&
-                (read_encrypted_fs_info(&encrypted_fs_data))) {
-            ui_print("Encrypted FS change aborted, resetting to disabled state.\n");
-            encrypted_fs_data.mode = MODE_ENCRYPTED_FS_DISABLED;
-        }
-
-        if (status != INSTALL_ERROR) {
-            if (erase_volume("/data")) {
-                ui_print("Data wipe failed.\n");
-                status = INSTALL_ERROR;
-            } else if (erase_volume("/cache")) {
-                ui_print("Cache wipe failed.\n");
-                status = INSTALL_ERROR;
-            } else if ((encrypted_fs_data.mode == MODE_ENCRYPTED_FS_ENABLED) &&
-                      (restore_encrypted_fs_info(&encrypted_fs_data))) {
-                ui_print("Encrypted FS change aborted.\n");
-                status = INSTALL_ERROR;
-            } else {
-                ui_print("Successfully updated Encrypted FS.\n");
-                status = INSTALL_SUCCESS;
-            }
-        }
-    } else if (update_package != NULL) {
+    if (update_package != NULL) {
         status = install_package(update_package);
         if (status != INSTALL_SUCCESS) ui_print("Installation aborted.\n");
     } else if (wipe_data) {

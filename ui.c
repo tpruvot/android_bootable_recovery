@@ -14,16 +14,21 @@
  * limitations under the License.
  */
 
+#include <errno.h>
+#include <fcntl.h>
 #include <linux/input.h>
 #include <pthread.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/reboot.h>
+#include <sys/stat.h>
 #include <sys/time.h>
+#include <sys/types.h>
 #include <time.h>
 #include <unistd.h>
+#include <sys/reboot.h>
+#include <cutils/android_reboot.h>
 
 #include "common.h"
 #include "minui/minui.h"
@@ -53,6 +58,14 @@ static int gShowBackButton = 0;
 
 #define PROGRESSBAR_INDETERMINATE_STATES 6
 #define PROGRESSBAR_INDETERMINATE_FPS 15
+#define UI_WAIT_KEY_TIMEOUT_SEC    120
+
+UIParameters ui_parameters = {
+    6,       // indeterminate progress bar frames
+    20,      // fps
+    7,       // installation icon frames (0 == static image)
+    13, 190, // installation icon overlay offset
+};
 
 static pthread_mutex_t gUpdateMutex = PTHREAD_MUTEX_INITIALIZER;
 static gr_surface gBackgroundIcon[NUM_BACKGROUND_ICONS];
@@ -99,6 +112,7 @@ static char text[MAX_ROWS][MAX_COLS];
 static int text_cols = 0, text_rows = 0;
 static int text_col = 0, text_row = 0, text_top = 0;
 static int show_text = 0;
+static int show_text_ever = 0;   // has show_text ever been 1?
 
 static char menu[MENU_MAX_ROWS][MENU_MAX_COLS];
 static int show_menu = 0;
@@ -604,10 +618,19 @@ int ui_text_visible()
     return visible;
 }
 
+int ui_text_ever_visible()
+{
+    pthread_mutex_lock(&gUpdateMutex);
+    int ever_visible = show_text_ever;
+    pthread_mutex_unlock(&gUpdateMutex);
+    return ever_visible;
+}
+
 void ui_show_text(int visible)
 {
     pthread_mutex_lock(&gUpdateMutex);
     show_text = visible;
+    if (show_text) show_text_ever = 1;
     update_screen_locked();
     pthread_mutex_unlock(&gUpdateMutex);
 }
@@ -648,3 +671,29 @@ void ui_set_showing_back_button(int showBackButton) {
 int ui_get_showing_back_button() {
     return gShowBackButton;
 }
+
+// Return true if USB is connected.
+int usb_connected()
+{
+    //#define SYS_USB_CONNECTED "/sys/class/android_usb/android0/state"
+
+    #define SYS_USB_CONNECTED   "/sys/class/power_supply/usb/online"
+    #define SYS_POWER_CONNECTED "/sys/class/power_supply/ac/online"
+
+    int state;
+    FILE* f = fopen(SYS_USB_CONNECTED, "r");
+    if (f != NULL) {
+        fscanf(f, "%d", &state);
+        fclose(f);
+        if (state) {
+            f = fopen(SYS_POWER_CONNECTED, "r");
+            if (f != NULL) {
+                fscanf(f, "%d", &state);
+                fclose(f);
+                return (state == 0);
+            }
+        }
+    }
+    return 0;
+}
+
