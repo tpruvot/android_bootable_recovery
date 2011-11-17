@@ -41,8 +41,8 @@
 #include "make_ext4fs.h"
 #include "bmlutils/bmlutils.h"
 
-#include EXPAND(BUILD_TOP/external/yaffs2/yaffs2/utils/mkyaffs2image.h)
-#include EXPAND(BUILD_TOP/external/yaffs2/yaffs2/utils/unyaffs.h)
+//#include EXPAND(BUILD_TOP/external/yaffs2/yaffs2/utils/unyaffs.h)
+#include "yaffs2.h"
 
 int signature_check_enabled = 1;
 int script_assert_enabled = 1;

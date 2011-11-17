@@ -40,8 +40,7 @@
 #include "flashutils/flashutils.h"
 #include <libgen.h>
 
-#include EXPAND(BUILD_TOP/external/yaffs2/yaffs2/utils/mkyaffs2image.h)
-#include EXPAND(BUILD_TOP/external/yaffs2/yaffs2/utils/unyaffs.h)
+#include "yaffs2.h"
 
 void nandroid_generate_timestamp_path(const char* backup_path)
 {

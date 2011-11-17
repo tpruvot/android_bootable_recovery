@@ -45,9 +45,7 @@
 #include "firmware.h"
 #include "extendedcommands.h"
 #include "flashutils/flashutils.h"
-
-#include EXPAND(BUILD_TOP/external/yaffs2/yaffs2/utils/mkyaffs2image.h)
-#include EXPAND(BUILD_TOP/external/yaffs2/yaffs2/utils/unyaffs.h)
+#include "yaffs2.h"
 
 static const struct option OPTIONS[] = {
   { "send_intent", required_argument, NULL, 's' },
