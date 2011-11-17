@@ -31,4 +31,3 @@ LOCAL_MODULE_TAGS := debug
 LOCAL_SRC_FILES := check-lost+found.c
 LOCAL_STATIC_LIBRARIES := libcutils libc
 include $(BUILD_EXECUTABLE)
-

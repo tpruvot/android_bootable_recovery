@@ -73,8 +73,4 @@ LOCAL_MODULE := updater
 
 LOCAL_FORCE_STATIC_EXECUTABLE := true
 
-#LOCAL_MODULE_PATH=utilities
-#LOCAL_MODULE_STEM=update-binary
-
 include $(BUILD_EXECUTABLE)
-

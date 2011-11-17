@@ -64,9 +64,12 @@ int applypatch_check(const char* filename,
 // *file.  Return 0 on success.
 int LoadFileContents(const char* filename, FileContents* file,
                      int retouch_flag);
-static int SaveFileContents(const char* filename, FileContents file);
+int SaveFileContents(const char* filename, FileContents file);
 
 void FreeFileContents(FileContents* file);
+
+int FindMatchingPatch(uint8_t* sha1, char** const patch_sha1_str,
+                      int num_patches);
 
 // bsdiff.c
 void ShowBSDiffLicense();

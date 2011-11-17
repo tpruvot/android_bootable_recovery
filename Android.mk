@@ -28,7 +28,7 @@ LOCAL_FORCE_STATIC_EXECUTABLE := true
 
 RECOVERY_NAME := Bootmenu ICS Recovery
 
-RECOVERY_VERSION := $(RECOVERY_NAME) v5.0.0
+RECOVERY_VERSION := $(RECOVERY_NAME) v5.5.0
 
 LOCAL_CFLAGS += -DRECOVERY_VERSION="$(RECOVERY_VERSION)"
 
@@ -61,6 +61,12 @@ LOCAL_CFLAGS += -DBUILD_TOP="$(ANDROID_BUILD_TOP)"
 LOCAL_CFLAGS += -DUSE_EXT4
 LOCAL_C_INCLUDES += system/extras/ext4_utils
 
+LOCAL_STATIC_LIBRARIES :=
+
+LOCAL_CFLAGS += -DUSE_EXT4
+LOCAL_C_INCLUDES += system/extras/ext4_utils
+LOCAL_STATIC_LIBRARIES += libext4_utils libz
+
 # This binary is in the recovery ramdisk, which is otherwise a copy of root.
 # It gets copied there in config/Makefile.  LOCAL_MODULE_TAGS suppresses
 # a (redundant) copy of the binary in /system/bin for user builds.
@@ -68,18 +74,17 @@ LOCAL_C_INCLUDES += system/extras/ext4_utils
 
 LOCAL_MODULE_TAGS := eng
 
-LOCAL_STATIC_LIBRARIES :=
 ifeq ($(BOARD_CUSTOM_RECOVERY_KEYMAPPING),)
   LOCAL_SRC_FILES += default_recovery_keys.c
 else
   LOCAL_SRC_FILES += $(BOARD_CUSTOM_RECOVERY_KEYMAPPING)
 endif
 
-LOCAL_STATIC_LIBRARIES += librebootrecovery
-LOCAL_STATIC_LIBRARIES += libext4_utils libz
 LOCAL_STATIC_LIBRARIES += libminzip libunz libmincrypt
 
-LOCAL_STATIC_LIBRARIES += libedify libbusybox libclearsilverregex libmkyaffs2image libunyaffs liberase_image libdump_image libflash_image
+LOCAL_STATIC_LIBRARIES += librebootrecovery
+
+LOCAL_STATIC_LIBRARIES += libedify libbusybox libmkyaffs2image libunyaffs liberase_image libdump_image libflash_image
 
 LOCAL_STATIC_LIBRARIES += libcrecovery libflashutils libmtdutils libmmcutils libbmlutils 
 
@@ -170,4 +175,3 @@ include $(commands_recovery_local_path)/applypatch/Android.mk
 include $(commands_recovery_local_path)/utilities/Android.mk
 include $(commands_recovery_local_path)/libreboot/Android.mk
 commands_recovery_local_path :=
-

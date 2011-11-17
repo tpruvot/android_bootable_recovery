@@ -22,7 +22,7 @@
 #include <string.h>
 #include <strings.h>
 #include "Retouch.h"
-#include "applypatch/applypatch.h"
+#include "../applypatch/applypatch.h"
 
 typedef struct {
     int32_t mmap_addr;

@@ -38,6 +38,7 @@
 #include "mtdutils/mtdutils.h"
 #include "mmcutils/mmcutils.h"
 #include "bmlutils/bmlutils.h"
+#include "cutils/android_reboot.h"
 
 //#include EXPAND(BUILD_TOP/external/yaffs2/yaffs2/utils/unyaffs.h)
 #include "yaffs2.h"
@@ -1140,7 +1141,7 @@ void show_advanced_menu()
         {
             case 0:
             {
-                reboot_wrapper("recovery");
+                android_reboot(ANDROID_RB_RESTART2, 0, "recovery");
                 break;
             }
             case 1:

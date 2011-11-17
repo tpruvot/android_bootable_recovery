@@ -26,6 +26,7 @@ void ui_init();
 int ui_wait_key();            // waits for a key/button press, returns the code
 int ui_key_pressed(int key);  // returns >0 if the code is currently pressed
 int ui_text_visible();        // returns >0 if text log is currently visible
+int ui_text_ever_visible();   // returns >0 if text log was ever visible
 void ui_show_text(int visible);
 void ui_clear_key_queue();
 
@@ -113,13 +114,19 @@ typedef struct {
     const char* device2;      // alternative device to try if fs_type
                               // == "ext4" or "vfat" and mounting
                               // 'device' fails
+
+    long long length;         // (ext4 partition only) when
+                              // formatting, size to use for the
+                              // partition.  0 or negative number
+                              // means to format all but the last
+                              // (that much).
+
     const char* fs_type2;
 
     const char* fs_options;
 
     const char* fs_options2;
 } Volume;
-
 
 typedef struct {
     // number of frames in indeterminate progress bar animation

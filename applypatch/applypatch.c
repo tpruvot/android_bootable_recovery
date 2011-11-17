@@ -321,7 +321,7 @@ static int LoadPartitionContents(const char* filename, FileContents* file) {
 
 // Save the contents of the given FileContents object under the given
 // filename.  Return 0 on success.
-static int SaveFileContents(const char* filename, FileContents file) {
+int SaveFileContents(const char* filename, FileContents file) {
     int fd = open(filename, O_WRONLY | O_CREAT | O_TRUNC);
     if (fd < 0) {
         printf("failed to open \"%s\" for write: %s\n",

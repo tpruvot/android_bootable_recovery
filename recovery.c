@@ -24,7 +24,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/reboot.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <time.h>
@@ -36,13 +35,14 @@
 #include "bootloader.h"
 #include "common.h"
 #include "cutils/properties.h"
+#include "cutils/android_reboot.h"
 #include "install.h"
 #include "minui/minui.h"
 #include "minzip/DirUtil.h"
 #include "roots.h"
 #include "recovery_ui.h"
-#include "encryptedfs_provisioning.h"
 #include "firmware.h"
+
 #include "extendedcommands.h"
 #include "flashutils/flashutils.h"
 #include "yaffs2.h"
@@ -52,7 +52,6 @@ static const struct option OPTIONS[] = {
   { "update_package", required_argument, NULL, 'u' },
   { "wipe_data", no_argument, NULL, 'w' },
   { "wipe_cache", no_argument, NULL, 'c' },
-  { "set_encrypted_filesystems", required_argument, NULL, 'e' },
   { "show_text", no_argument, NULL, 't' },
   { NULL, 0, NULL, 0 },
 };
@@ -523,8 +522,8 @@ static int compare_string(const void* a, const void* b) {
 }
 
 static int
-sdcard_directory(const char* path) {
-    ensure_path_mounted(SDCARD_ROOT);
+update_directory(const char* path, const char* unmount_when_done) {
+    ensure_path_mounted(path);
 
     const char* MENU_HEADERS[] = { "Choose a package to install:",
                                    path,
@@ -535,7 +534,9 @@ sdcard_directory(const char* path) {
     d = opendir(path);
     if (d == NULL) {
         LOGE("error opening %s: %s\n", path, strerror(errno));
-        ensure_path_unmounted(SDCARD_ROOT);
+        if (unmount_when_done != NULL) {
+            ensure_path_unmounted(unmount_when_done);
+        }
         return 0;
     }
 
@@ -600,7 +601,7 @@ sdcard_directory(const char* path) {
         char* item = zips[chosen_item];
         int item_len = strlen(item);
         if (chosen_item == 0) {          // item 0 is always "../"
-            // go up but continue browsing (if the caller is sdcard_directory)
+            // go up but continue browsing (if the caller is update_directory)
             result = -1;
             break;
         } else if (item[item_len-1] == '/') {
@@ -610,7 +611,7 @@ sdcard_directory(const char* path) {
             strlcat(new_path, "/", PATH_MAX);
             strlcat(new_path, item, PATH_MAX);
             new_path[strlen(new_path)-1] = '\0';  // truncate the trailing '/'
-            result = sdcard_directory(new_path);
+            result = update_directory(new_path, unmount_when_done);
             if (result >= 0) break;
         } else {
             // selected a zip file:  attempt to install it, and return
@@ -623,7 +624,9 @@ sdcard_directory(const char* path) {
             ui_print("\n-- Install %s ...\n", path);
             set_sdcard_update_bootloader_message();
             char* copy = copy_sideloaded_package(new_path);
-            ensure_path_unmounted(SDCARD_ROOT);
+            if (unmount_when_done != NULL) {
+                ensure_path_unmounted(unmount_when_done);
+            }
             if (copy) {
                 result = install_package(copy);
                 free(copy);
@@ -639,7 +642,9 @@ sdcard_directory(const char* path) {
     free(zips);
     free(headers);
 
-    ensure_path_unmounted(SDCARD_ROOT);
+    if (unmount_when_done != NULL) {
+        ensure_path_unmounted(unmount_when_done);
+    }
     return result;
 }
 
@@ -706,6 +711,7 @@ prompt_and_wait() {
         // statement below.
         chosen_item = device_perform_action(chosen_item);
 
+        int status;
         switch (chosen_item) {
             case ITEM_REBOOT:
                 poweroff=0;
@@ -727,34 +733,23 @@ prompt_and_wait() {
                 break;
 
             case ITEM_APPLY_SDCARD:
-                if (confirm_selection("Confirm install?", "Yes - Install /sdcard/update.zip"))
-                {
-                    ui_print("\n-- Install from sdcard...\n");
-                    int status = install_package(SDCARD_PACKAGE_FILE);
-                    if (status != INSTALL_SUCCESS) {
-                        ui_set_background(BACKGROUND_ICON_ERROR);
-                        ui_print("Installation aborted.\n");
-                    } else if (!ui_text_visible()) {
-                        return;  // reboot if logs aren't visible
-                    } else {
-                        ui_print("\nInstall from sdcard complete.\n");
-                    }
-                }
-                break;
-            case ITEM_INSTALL_ZIP:
                 show_install_update_menu();
                 break;
+
             case ITEM_NANDROID:
                 show_nandroid_menu();
                 break;
+
             case ITEM_PARTITION:
                 show_partition_menu();
                 break;
+
             case ITEM_ADVANCED:
                 show_advanced_menu();
                 break;
+                
             case ITEM_POWEROFF:
-                poweroff=1;
+                poweroff = 1;
                 return;
             case ITEM_EXITRECOVERY:
             case GO_BACK:
@@ -882,7 +877,7 @@ main(int argc, char **argv) {
     printf("\n");
 
     int status = INSTALL_SUCCESS;
-    
+
     if (update_package != NULL) {
         status = install_package(update_package);
         if (status != INSTALL_SUCCESS) ui_print("Installation aborted.\n");
@@ -933,12 +928,16 @@ main(int argc, char **argv) {
 
     // Otherwise, get ready to boot the main system...
     finish_recovery(send_intent);
-    if(!poweroff)
-        ui_print("Rebooting...\n");
-    else
-        ui_print("Shutting down...\n");
+
     sync();
-    reboot((!poweroff) ? RB_AUTOBOOT : RB_POWER_OFF);
+    if(!poweroff) {
+        ui_print("Rebooting...\n");
+        android_reboot(ANDROID_RB_RESTART, 0, 0);
+    }
+    else {
+        ui_print("Shutting down...\n");
+        android_reboot(ANDROID_RB_POWEROFF, 0, 0);
+    }
     return EXIT_SUCCESS;
 }
 
