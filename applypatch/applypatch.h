@@ -19,6 +19,7 @@
 
 #include <sys/stat.h>
 #include "mincrypt/sha.h"
+#include "minelf/Retouch.h"
 #include "edify/expr.h"
 
 typedef struct _Patch {
@@ -61,7 +62,10 @@ int applypatch_check(const char* filename,
 
 // Read a file into memory; store it and its associated metadata in
 // *file.  Return 0 on success.
-int LoadFileContents(const char* filename, FileContents* file);
+int LoadFileContents(const char* filename, FileContents* file,
+                     int retouch_flag);
+static int SaveFileContents(const char* filename, FileContents file);
+
 void FreeFileContents(FileContents* file);
 
 // bsdiff.c
