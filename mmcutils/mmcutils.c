@@ -464,7 +464,7 @@ mmc_raw_copy (const MmcPartition *partition, char *in_file) {
         }
     }
 
-    fsync(out);
+    fflush(out);
     ret = 0;
 ERROR1:
     fclose ( out );
@@ -519,7 +519,7 @@ mmc_raw_dump_internal (const char* in_file, const char *out_file) {
         }
     }
 
-    fsync(out);
+    fflush(out);
     ret = 0;
 ERROR1:
     fclose ( out );
