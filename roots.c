@@ -59,6 +59,7 @@ static char* dupe_string(const char* sz) {
 void load_volume_table() {
     int alloc = 2;
     device_volumes = malloc(alloc * sizeof(Volume));
+    memset(&device_volumes[0], 0, alloc * sizeof(Volume));
 
     // Insert an entry for /tmp, which is the ramdisk and is always mounted.
     device_volumes[0].mount_point = "/tmp";
@@ -98,6 +99,7 @@ void load_volume_table() {
                 alloc *= 2;
                 device_volumes = realloc(device_volumes, alloc*sizeof(Volume));
             }
+            memset(&device_volumes[num_volumes], 0, sizeof(Volume));
             device_volumes[num_volumes].mount_point = strdup(mount_point);
             device_volumes[num_volumes].fs_type = !is_null(fs_type2) ? strdup(fs_type2) : strdup(fs_type);
             device_volumes[num_volumes].device = strdup(device);
