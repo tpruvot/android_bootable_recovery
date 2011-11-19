@@ -19,9 +19,11 @@
 
 #include <signal.h>
 #include <sys/wait.h>
+#include <libgen.h>
 
 #include "bootloader.h"
 #include "common.h"
+#include "cutils/android_reboot.h"
 #include "cutils/properties.h"
 #include "firmware.h"
 #include "install.h"
@@ -34,11 +36,9 @@
 #include "mounts.h"
 #include "flashutils/flashutils.h"
 #include "edify/expr.h"
-#include <libgen.h>
 #include "mtdutils/mtdutils.h"
 #include "mmcutils/mmcutils.h"
 #include "bmlutils/bmlutils.h"
-#include "cutils/android_reboot.h"
 
 //#include EXPAND(BUILD_TOP/external/yaffs2/yaffs2/utils/unyaffs.h)
 #include "yaffs2.h"
@@ -48,9 +48,6 @@
 //ICS Correct ext4 prototype
 #define make_ext4fs(dev, a, b, c, d, e)  make_ext4fs_internal(dev, a, b, c, d, e, 0, 0, 0)
 #endif
-
-//custom libreboot
-extern int reboot_wrapper(const char* reason);
 
 int signature_check_enabled = 1;
 int script_assert_enabled = 1;

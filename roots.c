@@ -60,7 +60,7 @@ static char* dupe_string(const char* sz) {
 
 static int parse_options(char* options, Volume* volume) {
     char* option;
-    while (option = strtok(options, ",")) {
+    while (NULL != (option = strtok(options, ","))) {
         options = NULL;
 
         if (strncmp(option, "length=", 7) == 0) {
@@ -83,6 +83,7 @@ static int parse_options(char* options, Volume* volume) {
 void load_volume_table() {
     int alloc = 2;
     device_volumes = malloc(alloc * sizeof(Volume));
+    memset(&device_volumes[0], 0, alloc * sizeof(Volume));
 
     // Insert an entry for /tmp, which is the ramdisk and is always mounted.
     device_volumes[0].mount_point = "/tmp";
@@ -130,6 +131,7 @@ void load_volume_table() {
                 alloc *= 2;
                 device_volumes = realloc(device_volumes, alloc*sizeof(Volume));
             }
+            memset(&device_volumes[num_volumes], 0, sizeof(Volume));
             device_volumes[num_volumes].mount_point = strdup(mount_point);
             device_volumes[num_volumes].fs_type = strdup(fs_type);
             device_volumes[num_volumes].device = strdup(device);
