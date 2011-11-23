@@ -58,7 +58,8 @@ static int gShowBackButton = 0;
 
 #define PROGRESSBAR_INDETERMINATE_STATES 6
 #define PROGRESSBAR_INDETERMINATE_FPS 15
-#define UI_WAIT_KEY_TIMEOUT_SEC    120
+//#define UI_WAIT_KEY_TIMEOUT_SEC    3600 // 1h
+#define UI_WAIT_KEY_TIMEOUT_SEC      600
 
 UIParameters ui_parameters = {
     6,       // indeterminate progress bar frames
