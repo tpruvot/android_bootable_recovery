@@ -190,7 +190,7 @@ int ensure_path_mounted_at_mount_point(const char* path, const char* mount_point
     if (v == NULL) {
         // no /sdcard? let's assume /data/media
         if (strstr(path, "/sdcard") == path && is_data_media()) {
-            LOGW("using /data/media, no /sdcard found.\n");
+            LOGI("using /data/media, no /sdcard found.\n");
             int ret;
             if (0 != (ret = ensure_path_mounted("/data")))
                 return ret;
