@@ -1,5 +1,5 @@
-ifneq ($(TARGET_SIMULATOR),true)
-ifeq ($(TARGET_ARCH),arm)
+#ifneq ($(TARGET_SIMULATOR),true)
+#ifeq ($(TARGET_ARCH),arm)
 
 LOCAL_PATH := $(call my-dir)
 
@@ -31,5 +31,5 @@ LOCAL_FORCE_STATIC_EXECUTABLE := true
 include $(BUILD_EXECUTABLE)
 endif
 
-endif	# TARGET_ARCH == arm
-endif	# !TARGET_SIMULATOR
+#endif	# TARGET_ARCH == arm
+#endif	# !TARGET_SIMULATOR
