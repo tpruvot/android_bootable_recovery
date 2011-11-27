@@ -59,15 +59,11 @@ static char* dupe_string(const char* sz) {
 void load_volume_table() {
     int alloc = 2;
     device_volumes = malloc(alloc * sizeof(Volume));
-    memset(&device_volumes[0], 0, alloc * sizeof(Volume));
 
     // Insert an entry for /tmp, which is the ramdisk and is always mounted.
+    memset(&device_volumes[0], 0, sizeof(Volume));
     device_volumes[0].mount_point = "/tmp";
     device_volumes[0].fs_type = "ramdisk";
-    device_volumes[0].device = NULL;
-    device_volumes[0].device2 = NULL;
-    device_volumes[0].fs_options = NULL;
-    device_volumes[0].fs_options2 = NULL;
     num_volumes = 1;
 
     FILE* fstab = fopen("/etc/recovery.fstab", "r");
