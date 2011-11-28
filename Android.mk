@@ -66,7 +66,7 @@ LOCAL_C_INCLUDES += system/extras/ext4_utils
 # a (redundant) copy of the binary in /system/bin for user builds.
 # TODO: Build the ramdisk image in a more principled way.
 
-LOCAL_MODULE_TAGS := eng
+LOCAL_MODULE_TAGS := eng debug
 
 LOCAL_STATIC_LIBRARIES :=
 ifeq ($(BOARD_CUSTOM_RECOVERY_KEYMAPPING),)
@@ -127,7 +127,7 @@ ALL_DEFAULT_INSTALLED_MODULES += $(RECOVERY_BUSYBOX_SYMLINKS)
 
 include $(CLEAR_VARS)
 LOCAL_MODULE := nandroid-md5.sh
-LOCAL_MODULE_TAGS := eng
+LOCAL_MODULE_TAGS := eng debug
 LOCAL_MODULE_CLASS := RECOVERY_EXECUTABLES
 LOCAL_MODULE_PATH := $(TARGET_RECOVERY_ROOT_OUT)/sbin
 LOCAL_SRC_FILES := nandroid-md5.sh
@@ -135,7 +135,7 @@ include $(BUILD_PREBUILT)
 
 include $(CLEAR_VARS)
 LOCAL_MODULE := killrecovery.sh
-LOCAL_MODULE_TAGS := eng
+LOCAL_MODULE_TAGS := eng debug
 LOCAL_MODULE_CLASS := RECOVERY_EXECUTABLES
 LOCAL_MODULE_PATH := $(TARGET_RECOVERY_ROOT_OUT)/sbin
 LOCAL_SRC_FILES := killrecovery.sh

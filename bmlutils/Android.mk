@@ -12,5 +12,5 @@ $(foreach board_define,$(BOARD_RECOVERY_DEFINES), \
 
 LOCAL_SRC_FILES := bmlutils.c
 LOCAL_MODULE := libbmlutils
-LOCAL_MODULE_TAGS := eng
+LOCAL_MODULE_TAGS := eng debug
 include $(BUILD_STATIC_LIBRARY)
