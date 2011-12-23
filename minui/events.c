@@ -30,7 +30,11 @@
 #define MAX_DEVICES 16
 #define MAX_MISC_FDS 16
 
-#define test_bit(bit, array)   ((array)[(bit)/8] & (1<<((bit)%8)))
+#define BITS_PER_LONG (sizeof(unsigned long) * 8)
+#define BITS_TO_LONGS(x) (((x) + BITS_PER_LONG - 1) / BITS_PER_LONG)
+
+#define test_bit(bit, array) \
+    ((array)[(bit)/BITS_PER_LONG] & (1 << ((bit) % BITS_PER_LONG)))
 
 #define VIBRATOR_TIMEOUT_FILE	"/sys/class/timed_output/vibrator/enable"
 #define VIBRATOR_TIME_MS	50
@@ -64,9 +68,19 @@ struct ev {
     int sent, mt_idx;
 };
 
-static struct pollfd ev_fds[MAX_DEVICES];
-static struct ev evs[MAX_DEVICES];
+struct fd_info {
+    ev_callback cb;
+    void *data;
+};
+
+static struct pollfd ev_fds[MAX_DEVICES + MAX_MISC_FDS];
+static struct ev evs[MAX_DEVICES + MAX_MISC_FDS];
+
+static struct fd_info ev_fdinfo[MAX_DEVICES + MAX_MISC_FDS];
+
 static unsigned ev_count = 0;
+static unsigned ev_dev_count = 0;
+static unsigned ev_misc_count = 0;
 
 static inline int ABS(int x) {
     return x<0?-x:x;
@@ -191,7 +205,7 @@ int ev_init(void)
     dir = opendir("/dev/input");
     if(dir != 0) {
         while((de = readdir(dir))) {
-            uint8_t ev_bits[(EV_MAX + 1) / 8];
+            unsigned long ev_bits[BITS_TO_LONGS(EV_MAX)];
 
 //            fprintf(stderr,"/dev/input/%s\n", de->d_name);
             if(strncmp(de->d_name,"event",5)) continue;
@@ -219,10 +233,24 @@ int ev_init(void)
             vk_init(&evs[ev_count]);
 
             ev_count++;
-            if(ev_count == MAX_DEVICES) break;
+            ev_dev_count++;
+            if(ev_dev_count == MAX_DEVICES) break;
         }
     }
 
+    return 0;
+}
+
+int ev_add_fd(int fd, ev_callback cb, void *data)
+{
+    if (ev_misc_count == MAX_MISC_FDS || cb == NULL)
+        return -1;
+    ev_fds[ev_count].fd = fd;
+    ev_fds[ev_count].events = POLLIN;
+    ev_fdinfo[ev_count].cb = cb;
+    ev_fdinfo[ev_count].data = data;
+    ev_count++;
+    ev_misc_count++;
     return 0;
 }
 
@@ -235,6 +263,68 @@ void ev_exit(void)
 	}
         close(ev_fds[ev_count].fd);
     }
+    ev_misc_count = 0;
+    ev_dev_count = 0;
+}
+
+int ev_wait(int timeout)
+{
+    int r = poll(ev_fds, ev_count, timeout);
+    if (r <= 0)
+        return -1;
+    return 0;
+}
+
+void ev_dispatch(void)
+{
+    unsigned n;
+    int ret;
+    for (n = 0; n < ev_count; n++) {
+        ev_callback cb = ev_fdinfo[n].cb;
+        if (cb && (ev_fds[n].revents & ev_fds[n].events))
+            cb(ev_fds[n].fd, ev_fds[n].revents, ev_fdinfo[n].data);
+    }
+}
+
+int ev_get_input(int fd, short revents, struct input_event *ev)
+{
+    int r;
+    if (revents & POLLIN) {
+        r = read(fd, ev, sizeof(*ev));
+        if (r == sizeof(*ev))
+            return 0;
+    }
+    return -1;
+}
+
+int ev_sync_key_state(ev_set_key_callback set_key_cb, void *data)
+{
+    unsigned long key_bits[BITS_TO_LONGS(KEY_MAX)];
+    unsigned long ev_bits[BITS_TO_LONGS(EV_MAX)];
+    unsigned i;
+    int ret;
+
+    for (i = 0; i < ev_dev_count; i++) {
+        int code;
+
+        memset(key_bits, 0, sizeof(key_bits));
+        memset(ev_bits, 0, sizeof(ev_bits));
+
+        ret = ioctl(ev_fds[i].fd, EVIOCGBIT(0, sizeof(ev_bits)), ev_bits);
+        if (ret < 0 || !test_bit(EV_KEY, ev_bits))
+            continue;
+
+        ret = ioctl(ev_fds[i].fd, EVIOCGKEY(sizeof(key_bits)), key_bits);
+        if (ret < 0)
+            continue;
+
+        for (code = 0; code <= KEY_MAX; code++) {
+            if (test_bit(code, key_bits))
+                set_key_cb(code, 1, data);
+        }
+    }
+
+    return 0;
 }
 
 static int vk_inside_display(__s32 value, struct input_absinfo *info, int screen_size)
@@ -380,3 +470,4 @@ int ev_get(struct input_event *ev, unsigned dont_wait)
 
     return -1;
 }
+
