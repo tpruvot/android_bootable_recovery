@@ -374,7 +374,7 @@ void ui_init(void)
 {
     ui_has_initialized = 1;
     gr_init();
-    ev_init();
+    ev_init_compat();
 
     text_col = text_row = 0;
     text_rows = gr_fb_height() / CHAR_HEIGHT;

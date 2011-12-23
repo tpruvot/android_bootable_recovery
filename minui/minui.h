@@ -41,18 +41,22 @@ void gr_blit(gr_surface source, int sx, int sy, int w, int h, int dx, int dy);
 unsigned int gr_get_width(gr_surface surface);
 unsigned int gr_get_height(gr_surface surface);
 
+int ev_get(struct input_event *ev, unsigned dont_wait);
+
 // input event structure, include <linux/input.h> for the definition.
 // see http://www.mjmwired.net/kernel/Documentation/input/ for info.
 struct input_event;
 
-int ev_init(void);
-void ev_exit(void);
-int ev_get(struct input_event *ev, unsigned dont_wait);
-
 typedef int (*ev_callback)(int fd, short revents, void *data);
 typedef int (*ev_set_key_callback)(int code, int value, void *data);
 
+int ev_init_compat(void);
+int ev_init(ev_callback input_cb, void *data);
+
+void ev_exit(void);
+
 int ev_add_fd(int fd, ev_callback cb, void *data);
+int ev_sync_key_state(ev_set_key_callback set_key_cb, void *data);
 
 /* timeout has the same semantics as for poll
  *    0 : don't block
@@ -63,8 +67,6 @@ int ev_wait(int timeout);
 
 int ev_get_input(int fd, short revents, struct input_event *ev);
 void ev_dispatch(void);
-
-int ev_sync_key_state(ev_set_key_callback set_key_cb, void *data);
 
 // Returns 0 if no error, else negative.
 int res_create_surface(const char* name, gr_surface* pSurface);

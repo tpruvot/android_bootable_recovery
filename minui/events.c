@@ -196,7 +196,7 @@ static int vk_init(struct ev *e)
     return 0;
 }
 
-int ev_init(void)
+int ev_init(ev_callback input_cb, void *data)
 {
     DIR *dir;
     struct dirent *de;
@@ -227,10 +227,16 @@ int ev_init(void)
 
             ev_fds[ev_count].fd = fd;
             ev_fds[ev_count].events = POLLIN;
+
+            // gingerbread
             evs[ev_count].fd = &ev_fds[ev_count];
 
-            /* Load virtualkeys if there are any */
+            // Load virtualkeys if there are any
             vk_init(&evs[ev_count]);
+
+            // ics (required for charger)
+            ev_fdinfo[ev_count].cb = input_cb;
+            ev_fdinfo[ev_count].data = data;
 
             ev_count++;
             ev_dev_count++;
@@ -239,6 +245,10 @@ int ev_init(void)
     }
 
     return 0;
+}
+
+int ev_init_compat(void) {
+    return ev_init(NULL, NULL);
 }
 
 int ev_add_fd(int fd, ev_callback cb, void *data)
