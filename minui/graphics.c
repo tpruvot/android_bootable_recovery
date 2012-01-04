@@ -40,6 +40,8 @@
 # define PIXEL_SIZE   2
 #endif
 
+#define NUM_BUFFERS 2
+
 #ifndef BOARD_LDPI_RECOVERY
 # include "font_10x18.h"
 #else
@@ -58,7 +60,7 @@ typedef struct {
 static GRFont *gr_font = NULL;
 static GGLContext *gr_context = 0;
 static GGLSurface gr_font_texture;
-static GGLSurface gr_framebuffer[2];
+static GGLSurface gr_framebuffer[NUM_BUFFERS];
 static GGLSurface gr_mem_surface;
 static unsigned gr_active_fb = 0;
 
@@ -166,7 +168,7 @@ static void get_memory_surface(GGLSurface* ms) {
 static void set_active_framebuffer(unsigned n)
 {
     if (n > 1) return;
-    vi.yres_virtual = vi.yres * PIXEL_SIZE;
+    vi.yres_virtual = vi.yres * NUM_BUFFERS;
     vi.yoffset = n * vi.yres;
     vi.bits_per_pixel = PIXEL_SIZE * 8;
     if (ioctl(gr_fb_fd, FBIOPUT_VSCREENINFO, &vi) < 0) {
