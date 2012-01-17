@@ -768,8 +768,11 @@ prompt_and_wait() {
                 // dont use finish recovery...
                 //finish_recovery(NULL);
 
+		gr_exit();
                 //choose what to do in this script... (kill or not)
                 __system("nohup /sbin/recoveryexit.sh");
+
+		exit(0);
         }
     }
 }

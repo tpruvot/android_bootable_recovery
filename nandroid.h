@@ -10,8 +10,10 @@
 
 #define BAK_PDS     0x100
 #define BAK_DEVTREE 0x200
-#define BAK_WIMAX   0x400
+#define BAK_OSH     0x400
 #define BAK_LOGO    0x800
+/* add custom here */
+#define BAK_WIMAX   0x8000
 
 #define BACKUP_ALL   BAK_SYSTEM | BAK_DATA | BAK_BOOT | BAK_DEVTREE | BAK_RECOVERY | BAK_LOGO
 

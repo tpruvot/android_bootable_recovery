@@ -83,7 +83,7 @@ int install_zip(const char* packagefilepath)
 char* INSTALL_MENU_ITEMS[] = {  "choose zip from sdcard",
                                 "toggle signature verification",
                                 "toggle script asserts",
-                                "choose zip from internal sdcard",
+                                "choose zip from internal sdcard (emmc)",
                                 NULL };
 #define ITEM_CHOOSE_ZIP       0
 #define ITEM_SIG_CHECK        1
@@ -585,13 +585,13 @@ int format_unknown_device(const char *device, const char* path, const char *fs_t
 
     static char tmp[PATH_MAX];
     if (strcmp(path, "/data") == 0) {
-        sprintf(tmp, "cd /data ; for f in $(ls -a | grep -v ^media$); do rm -rf $f >>/tmp/recovery.log; done");
+        sprintf(tmp, "cd /data ; for f in $(ls -a | grep -v ^media$); do rm -r $f 2>>/tmp/recovery.log; done");
         __system(tmp);
     }
     else {
-        sprintf(tmp, "rm -rf %s/* 2>>/tmp/recovery.log", path);
+        sprintf(tmp, "rm -r %s/* 2>>/tmp/recovery.log", path);
         __system(tmp);
-        sprintf(tmp, "rm -rf %s/.* 2>>/tmp/recovery.log", path);
+        sprintf(tmp, "rm -r %s/.* 2>>/tmp/recovery.log", path);
         __system(tmp);
     }
 
@@ -801,6 +801,7 @@ void show_nandroid_advanced_backup_menu(const char* backup_path)
         "Backup logo",
         "Backup sd-ext",
         "Backup pds",
+        "Backup osh",
         "Backup wimax",
         NULL
     };
@@ -809,7 +810,7 @@ void show_nandroid_advanced_backup_menu(const char* backup_path)
     char tmp[PATH_MAX];
     if (0 != get_partition_device("wimax", tmp)) {
         // disable wimax backup option
-        list[9] = NULL;
+        list[10] = NULL;
     }
 
     int chosen_item = get_menu_selection(headers, list, 0, 0);
@@ -852,6 +853,10 @@ void show_nandroid_advanced_backup_menu(const char* backup_path)
             show_nandroid_advanced_backup_menu(backup_path);
             break;
         case 9:
+            nandroid_backup(backup_path, BAK_OSH);
+            show_nandroid_advanced_backup_menu(backup_path);
+            break;
+        case 10:
             nandroid_backup(backup_path, BAK_WIMAX);
             show_nandroid_advanced_backup_menu(backup_path);
             break;
@@ -913,13 +918,14 @@ void show_nandroid_advanced_restore_menu(const char* path)
         "Restore logo",
         "Restore sd-ext",
         "Restore pds",
+        "Restore osh",
         "Restore wimax",
         NULL
     };
 
     if (0 != get_partition_device("wimax", tmp)) {
         // disable wimax restore option
-        list[9] = NULL;
+        list[10] = NULL;
     }
 
     char* name;
@@ -986,6 +992,10 @@ void show_nandroid_advanced_restore_menu(const char* path)
                 nandroid_restore(dir, BAK_PDS);
             break;
         case 9:
+            if (confirm_selection(confirm_restore, "Yes - Restore osh"))
+                nandroid_restore(dir, BAK_OSH);
+            break;
+        case 10:
             if (confirm_selection(confirm_restore, "Yes - Restore wimax"))
                 nandroid_restore(dir, BAK_WIMAX);
             break;
@@ -1093,7 +1103,7 @@ void wipe_battery_stats()
     ensure_path_unmounted("/data");
 }
 
-#define ADBD_PATH "/sbin/adbd.root"
+#define ADBD_PATH "/sbin/adbd"
 
 void show_advanced_menu()
 {
@@ -1103,7 +1113,7 @@ void show_advanced_menu()
                                 NULL
     };
 
-    static char* list[] = { "Motorola Recovery",
+    static char* list[] = { "Restart the recovery",
                             "Wipe Dalvik Cache",
                             "Wipe Battery Stats",
                             "Report Error",
@@ -1121,6 +1131,10 @@ void show_advanced_menu()
 #endif // BOARD_HAS_SMALL_RECOVERY
                             NULL
     };
+
+#ifndef UNLOCKED_DEVICE
+    list[0] = "Motorola Recovery";
+#endif
 
     for (;;)
     {
@@ -1186,8 +1200,7 @@ void show_advanced_menu()
 #ifdef BOARD_HAS_SMALL_RECOVERY
             case 6:
             {
-                __system("killall adbd.root");
-                __system("killall adbd");
+                __system("killall -9 adbd");
                 LOGI("\nStopping adbd...\n");
                 //__system("ps w | grep adbd | grep -v grep >> /tmp/recovery.log");
                 //ui_printlogtail(2);
@@ -1336,7 +1349,8 @@ void create_fstab()
     }
     Volume *vol = volume_for_path("/boot");
     if (NULL != vol && strcmp(vol->fs_type, "mtd") != 0 && strcmp(vol->fs_type, "emmc") != 0 && strcmp(vol->fs_type, "bml") != 0)
-         write_fstab_root("/boot", file);
+        write_fstab_root("/boot", file);
+
     write_fstab_root("/cache", file);
     write_fstab_root("/data", file);
     write_fstab_root("/datadata", file);
@@ -1347,6 +1361,7 @@ void create_fstab()
     write_fstab_root("/recovery", file);
     write_fstab_root("/sdcard", file);
     write_fstab_root("/sd-ext", file);
+    write_fstab_root("/osh", file);
     fclose(file);
     LOGI("Completed outputting fstab.\n");
 }
