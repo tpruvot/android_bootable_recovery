@@ -3,7 +3,11 @@ include $(CLEAR_VARS)
 
 LOCAL_SRC_FILES := events.c resources.c
 ifneq ($(BOARD_CUSTOM_GRAPHICS),)
+  ifeq ($(TARGET_BOOTLOADER_BOARD_NAME),olympus)
+  LOCAL_SRC_FILES += graphics.c
+  else
   LOCAL_SRC_FILES += $(BOARD_CUSTOM_GRAPHICS)
+  endif
 else
   LOCAL_SRC_FILES += graphics.c
 endif
@@ -18,6 +22,10 @@ endif
 
 ifeq ($(TARGET_RECOVERY_PIXEL_FORMAT),"BGRA_8888")
     LOCAL_CFLAGS += -DRECOVERY_BGRA
+endif
+
+ifeq ($(TARGET_RECOVERY_PIXEL_FORMAT),"RGB_565")
+    LOCAL_CFLAGS += -DRECOVERY_RGB_565
 endif
 
 ifneq ($(BOARD_LDPI_RECOVERY),)

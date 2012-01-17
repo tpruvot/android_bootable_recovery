@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 
+#include <errno.h>
+
 #include <stdlib.h>
 #include <unistd.h>
-
 #include <fcntl.h>
 #include <stdio.h>
 
@@ -170,7 +171,8 @@ static void set_active_framebuffer(unsigned n)
     vi.yoffset = n * vi.yres;
     vi.bits_per_pixel = PIXEL_SIZE * 8;
     if (ioctl(gr_fb_fd, FBIOPUT_VSCREENINFO, &vi) < 0) {
-        perror("active fb swap failed");
+        perror("active fb swap failed\ntry gr_flip...");
+        gr_flip();
     }
 }
 
@@ -334,6 +336,7 @@ int gr_init(void)
 
     gr_fb_fd = get_framebuffer(gr_framebuffer);
     if (gr_fb_fd < 0) {
+        perror("unable to get framebuffer");
         gr_exit();
         return -1;
     }
