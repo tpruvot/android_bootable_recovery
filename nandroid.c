@@ -322,6 +322,9 @@ int nandroid_backup(const char* backup_path, int parts)
     if ((parts & BAK_PDS) && (ret = nandroid_backup_partition_extended(backup_path,"/pds", 0)))
         ui_print(warning, "pds");
 
+    if ((parts & BAK_OSH) && (ret = nandroid_backup_partition_extended(backup_path,"/osh", 0)))
+        ui_print(warning, "osh");
+
     Volume *vol = volume_for_path("/sd-ext");
     if ((parts & BAK_SDEXT) && (vol == NULL || 0 != statfs(vol->device, &s)))
     {
@@ -606,6 +609,11 @@ int nandroid_restore(const char* backup_path, int parts)
        sprintf(tmp, fmt, backup_path, "pds");
        __system(tmp);
     }
+    if (!(parts & BAK_OSH)) {
+       sprintf(tmp, fmt, backup_path, "osh");
+       __system(tmp);
+    }
+
     sprintf(tmp, "cd '%s' && md5sum -c md5", backup_path);
     int ret = __system(tmp);
     sprintf(tmp, "cd '%s' && rm -f md5 md5_filtered", backup_path);
@@ -679,6 +687,9 @@ int nandroid_restore(const char* backup_path, int parts)
 
     if ((parts & BAK_PDS) && 0 != (ret = nandroid_restore_partition_extended(backup_path, "/pds", 1)))
         ui_print("\nProblem while restoring pds !\n");
+
+    if ((parts & BAK_OSH) && 0 != (ret = nandroid_restore_partition_extended(backup_path, "/osh", 1)))
+        ui_print("\nProblem while restoring osh !\n");
 
     sync();
     ui_set_background(BACKGROUND_ICON_NONE);
