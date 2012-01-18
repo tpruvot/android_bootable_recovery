@@ -65,7 +65,7 @@ static int ui_log_stdout = 1;
 static const struct { gr_surface* surface; const char *name; } BITMAPS[] = {
     { &gBackgroundIcon[BACKGROUND_ICON_INSTALLING], "icon_installing" },
     { &gBackgroundIcon[BACKGROUND_ICON_ERROR],      "icon_error" },
-    { &gBackgroundIcon[BACKGROUND_ICON_CLOCKWORK],  "icon_clockwork" },
+    { &gBackgroundIcon[BACKGROUND_ICON_CLOCKWORK],  "icon_bootmenu" },
     { &gBackgroundIcon[BACKGROUND_ICON_FIRMWARE_INSTALLING], "icon_firmware_install" },
     { &gBackgroundIcon[BACKGROUND_ICON_FIRMWARE_ERROR], "icon_firmware_error" },
     { &gProgressBarIndeterminate[0],    "indeterminate1" },
@@ -171,10 +171,9 @@ static void draw_text_line(int row, const char* t) {
 }
 
 //#define MENU_TEXT_COLOR 255, 160, 49, 255 //orange
-//#define MENU_TEXT_COLOR 255, 1, 1, 200 //blue
 //#define MENU_TEXT_COLOR 7, 255, 1, 255 //lime
-
-#define MENU_TEXT_COLOR 0, 191, 255, 255 //cyan
+//#define MENU_TEXT_COLOR 0, 191, 255, 255 //cyan
+#define MENU_TEXT_COLOR 64, 96, 255, 255 //blue
 #define NORMAL_TEXT_COLOR 200, 200, 200, 255
 #define HEADER_TEXT_COLOR NORMAL_TEXT_COLOR
 
