@@ -45,6 +45,7 @@ endif
 
 ifeq ($(TARGET_BOOTLOADER_BOARD_NAME),olympus)
     LOCAL_CFLAGS += -DUNLOCKED_DEVICE
+    LOCAL_MODULE_PATH := $(PRODUCT_OUT)/recovery/root/sbin
 endif
 
 RECOVERY_API_VERSION := 2

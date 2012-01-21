@@ -31,7 +31,7 @@ char* MENU_ITEMS[] = { "reboot system now",
                        "mounts and storage",
                        "advanced",
                        "power off",
-//                     "exit recovery",
+                       "exit recovery",
                        NULL };
 
 int device_recovery_start() {
@@ -76,6 +76,7 @@ int device_handle_key(int key_code, int visible) {
                 if (!get_allow_toggle_display())
                     return GO_BACK;
                 break;
+
             case KEY_LEFTBRACE:
             case KEY_ENTER:
             case BTN_MOUSE:
@@ -83,6 +84,8 @@ int device_handle_key(int key_code, int visible) {
             case KEY_CAMERA:
             case KEY_F21:
             case KEY_SEND:
+            case KEY_END:
+            case KEY_MEDIA:
                 return SELECT_ITEM;
             
             case KEY_END:
@@ -93,6 +96,8 @@ int device_handle_key(int key_code, int visible) {
                 }
                 if (!get_allow_toggle_display())
                     return GO_BACK;
+                break;
+
             case KEY_BACK:
                 return GO_BACK;
         }
