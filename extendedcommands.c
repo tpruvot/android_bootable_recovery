@@ -416,7 +416,7 @@ int confirm_selection(const char* title, const char* confirm)
 
     const char* confirm_headers[]  = {  title, "  THIS CAN NOT BE UNDONE.", "", NULL };
     const char* items[] = {
-                       "No",
+                      "No",
                       "No",
                       "No",
                       "No",
@@ -813,6 +813,10 @@ void show_nandroid_advanced_backup_menu(const char* backup_path)
         list[10] = NULL;
     }
 
+    if (0 != get_partition_device("osh", tmp)) {
+        list[9] = "";
+    }
+
     int chosen_item = get_menu_selection(headers, list, 0, 0);
     switch (chosen_item)
     {
@@ -923,9 +927,12 @@ void show_nandroid_advanced_restore_menu(const char* path)
         NULL
     };
 
+    // wimax is different
+    #define RESTORE_DYNOPTS 9
+
     if (0 != get_partition_device("wimax", tmp)) {
         // disable wimax restore option
-        list[10] = NULL;
+        list[RESTORE_DYNOPTS+1] = NULL;
     }
 
     char* name;
@@ -934,7 +941,7 @@ void show_nandroid_advanced_restore_menu(const char* path)
     static char* unavailable = "";
 
     ui_print("%s:\n", basename(dir));
-    for (p=8; p >= 0; p--) {
+    for (p = RESTORE_DYNOPTS; p >= 0; p--) {
         if (list[p] != NULL && strlen(list[p])) {
             name = list[p] + strlen("Restore ");
             sprintf(tmp, "%s/%s.img", dir, name);
@@ -1014,27 +1021,32 @@ void show_nandroid_menu()
                             "Restore (system & data)",
                             "Advanced Restore...",
 
-                            "backup to internal sdcard",
-                            "restore from internal sdcard",
-                            "advanced restore from internal sdcard",
+                            "Backup to emmc",
+                            "Advanced Backup to emmc...",
+                            "Restore from emmc",
+                            "Advanced restore from emmc",
                             NULL
     };
 
     if (volume_for_path("/emmc") == NULL)
         list[4] = NULL;
 
+    char backup_path[PATH_MAX];
+    time_t t = time(NULL);
+    struct tm *tmp = localtime(&t);
+    struct timeval tp;
+    gettimeofday(&tp, NULL);
+
     int chosen_item = get_menu_selection(headers, list, 0, 0);
     switch (chosen_item)
     {
+
+        /* SDCARD */
+
         case 0:
             {
-                char backup_path[PATH_MAX];
-                time_t t = time(NULL);
-                struct tm *tmp = localtime(&t);
                 if (tmp == NULL)
                 {
-                    struct timeval tp;
-                    gettimeofday(&tp, NULL);
                     sprintf(backup_path, "/sdcard/clockworkmod/backup/%d", (int) tp.tv_sec);
                 }
                 else
@@ -1042,17 +1054,12 @@ void show_nandroid_menu()
                     strftime(backup_path, sizeof(backup_path), "/sdcard/clockworkmod/backup/%F.%H.%M.%S", tmp);
                 }
                 nandroid_backup(backup_path, BACKUP_ALL);
+                break;
             }
-            break;
         case 1:
             {
-                char backup_path[PATH_MAX];
-                time_t t = time(NULL);
-                struct tm *tmp = localtime(&t);
                 if (tmp == NULL)
                 {
-                    struct timeval tp;
-                    gettimeofday(&tp, NULL);
                     sprintf(backup_path, "/sdcard/clockworkmod/backup/%d", (int) tp.tv_sec);
                 }
                 else
@@ -1069,15 +1076,12 @@ void show_nandroid_menu()
             show_nandroid_advanced_restore_menu("/sdcard");
             break;
 
+        /* EMMC */
+
         case 4:
             {
-                char backup_path[PATH_MAX];
-                time_t t = time(NULL);
-                struct tm *tmp = localtime(&t);
                 if (tmp == NULL)
                 {
-                    struct timeval tp;
-                    gettimeofday(&tp, NULL);
                     sprintf(backup_path, "/emmc/clockworkmod/backup/%d", (int) tp.tv_sec);
                 }
                 else
@@ -1088,9 +1092,22 @@ void show_nandroid_menu()
             }
             break;
         case 5:
+            {
+                if (tmp == NULL)
+                {
+                    sprintf(backup_path, "/emmc/clockworkmod/backup/%d", (int) tp.tv_sec);
+                }
+                else
+                {
+                    strftime(backup_path, sizeof(backup_path), "/emmc/clockworkmod/backup/%F.%H.%M.%S", tmp);
+                }
+                show_nandroid_advanced_backup_menu(backup_path);
+                break;
+            }
+        case 6:
             show_nandroid_restore_menu("/emmc");
             break;
-        case 6:
+        case 7:
             show_nandroid_advanced_restore_menu("/emmc");
             break;
     }
@@ -1157,7 +1174,7 @@ void show_advanced_menu()
                     __system("rm -r /data/dalvik-cache");
                     __system("rm -r /cache/dalvik-cache");
                     if (ensure_path_mounted("/sd-ext") == 0) {
-                        __system("rm -r /sd-ext/dalvik-cache");
+                        __system("rm -rf /sd-ext/dalvik-cache");
                     }
                     ui_print("Dalvik Cache wiped.\n");
                 }
