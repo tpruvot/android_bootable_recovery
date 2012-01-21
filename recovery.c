@@ -689,6 +689,13 @@ wipe_data(int confirm) {
     ui_print("Data wipe complete.\n");
 }
 
+int item_count(char ** arstr)
+{
+    int ret=0;
+    while (arstr[ret] != NULL) ret++;
+    return ret;
+}
+
 static void
 prompt_and_wait() {
     char** headers = prepend_title((char**)MENU_HEADERS);
@@ -696,6 +703,10 @@ prompt_and_wait() {
     for (;;) {
         finish_recovery(NULL);
         ui_reset_progress();
+
+        if (item_count(MENU_ITEMS) > ITEM_EXITRECOVERY && !file_exists("/sbin/recoveryexit.sh")) {
+            MENU_ITEMS[ITEM_EXITRECOVERY] = NULL;
+        }
 
         allow_display_toggle = 1;
         int chosen_item = get_menu_selection(headers, MENU_ITEMS, 0, 0);
@@ -760,6 +771,7 @@ prompt_and_wait() {
             case GO_BACK:
                 // dont use finish recovery...
                 //finish_recovery(NULL);
+                gr_exit();
 
                 //choose what to do in this script... (kill or not)
                 __system("nohup /sbin/recoveryexit.sh");
@@ -772,24 +784,25 @@ print_property(const char *key, const char *name, void *cookie) {
     printf("%s=%s\n", key, name);
 }
 
+
 int
 main(int argc, char **argv) {
-	if (strncmp(basename(argv[0]), "recovery", 8) != 0)
-	{
-	    if (strstr(argv[0], "flash_image") != NULL)
-	        return flash_image_main(argc, argv);
-	    if (strstr(argv[0], "volume") != NULL)
-	        return volume_main(argc, argv);
-	    if (strstr(argv[0], "edify") != NULL)
-	        return edify_main(argc, argv);
-	    if (strstr(argv[0], "dump_image") != NULL)
-	        return dump_image_main(argc, argv);
-	    if (strstr(argv[0], "erase_image") != NULL)
-	        return erase_image_main(argc, argv);
-	    if (strstr(argv[0], "mkyaffs2image") != NULL)
-	        return mkyaffs2image_main(argc, argv);
-	    if (strstr(argv[0], "unyaffs") != NULL)
-	        return unyaffs_main(argc, argv);
+    if (strncmp(basename(argv[0]), "recovery", 8) != 0)
+    {
+        if (strstr(argv[0], "flash_image") != NULL)
+            return flash_image_main(argc, argv);
+        if (strstr(argv[0], "volume") != NULL)
+            return volume_main(argc, argv);
+        if (strstr(argv[0], "edify") != NULL)
+            return edify_main(argc, argv);
+        if (strstr(argv[0], "dump_image") != NULL)
+            return dump_image_main(argc, argv);
+        if (strstr(argv[0], "erase_image") != NULL)
+            return erase_image_main(argc, argv);
+        if (strstr(argv[0], "mkyaffs2image") != NULL)
+            return mkyaffs2image_main(argc, argv);
+        if (strstr(argv[0], "unyaffs") != NULL)
+            return unyaffs_main(argc, argv);
         if (strstr(argv[0], "nandroid"))
             return nandroid_main(argc, argv);
         if (strstr(argv[0], "reboot"))
@@ -808,8 +821,9 @@ main(int argc, char **argv) {
         }
         if (strstr(argv[0], "setprop"))
             return setprop_main(argc, argv);
-		return busybox_driver(argc, argv);
-	}
+
+        return busybox_driver(argc, argv);
+    }
     __system("/sbin/postrecoveryboot.sh");
 
     int is_user_initiated_recovery = 0;
@@ -840,11 +854,11 @@ main(int argc, char **argv) {
         case 'p': previous_runs = atoi(optarg); break;
         case 's': send_intent = optarg; break;
         case 'u': update_package = optarg; break;
-        case 'w': 
+        case 'w':
 #ifndef BOARD_RECOVERY_ALWAYS_WIPES
-		wipe_data = wipe_cache = 1;
+                  wipe_data = wipe_cache = 1;
 #endif
-		break;
+                  break;
         case 'c': wipe_cache = 1; break;
         case 't': ui_show_text(1); break;
         case '?':
