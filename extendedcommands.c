@@ -813,7 +813,7 @@ void show_nandroid_advanced_backup_menu(const char* backup_path)
         list[10] = NULL;
     }
 
-    if (0 != get_partition_device("osh", tmp)) {
+    if (!has_osh()) {
         list[9] = "";
     }
 
@@ -1370,19 +1370,15 @@ void create_fstab()
 
     write_fstab_root("/cache", file);
     write_fstab_root("/data", file);
-    if (has_datadata()) {
-        write_fstab_root("/datadata", file);
-    }
-    if (has_emmc()) {
-        write_fstab_root("/emmc", file);
-    }
+    if (has_datadata()) write_fstab_root("/datadata", file);
+    if (has_emmc())     write_fstab_root("/emmc", file);
+    if (has_osh())      write_fstab_root("/osh", file);
     write_fstab_root("/system", file);
     write_fstab_root("/devtree", file);
     write_fstab_root("/logo", file);
     write_fstab_root("/recovery", file);
     write_fstab_root("/sdcard", file);
     write_fstab_root("/sd-ext", file);
-    write_fstab_root("/osh", file);
     fclose(file);
     LOGI("Completed outputting fstab.\n");
 }
@@ -1523,6 +1519,11 @@ int has_datadata() {
 
 int has_emmc() {
     Volume *vol = volume_for_path("/emmc");
+    return vol != NULL;
+}
+
+int has_osh() {
+    Volume *vol = volume_for_path("/osh");
     return vol != NULL;
 }
 
