@@ -46,6 +46,10 @@
 #define ABS_MT_TOUCH_MAJOR 0x30
 #define SYN_MT_REPORT 2
 
+#ifndef KEYPAD_USE_EV_ABS
+#define KEYPAD_USE_EV_ABS 1
+#endif
+
 struct virtualkey {
     int scancode;
     int centerx, centery;
@@ -118,10 +122,13 @@ static char *vk_strtok_r(char *str, const char *delim, char **save_str)
     return str;
 }
 
+// to reduce stack frame size
+static char vks[2048];
+
 static int vk_init(struct ev *e)
 {
     char vk_path[PATH_MAX] = "/sys/board_properties/virtualkeys.";
-    char vks[2048], *ts;
+    char *ts;
     ssize_t len;
     int vk_fd;
     int i;
@@ -172,6 +179,8 @@ static int vk_init(struct ev *e)
 
     e->vks = malloc(sizeof(*e->vks) * e->vk_count);
 
+    LOGI("%s: found %d scancodes\n", vk_path, e->vk_count);
+
     for (i = 0; i < e->vk_count; ++i) {
         char *token[6];
         int j;
@@ -221,8 +230,13 @@ int ev_init(void)
             /* TODO: add ability to specify event masks. For now, just assume
              * that only EV_KEY and EV_REL event types are ever needed. */
             if (!test_bit(EV_KEY, ev_bits) && !test_bit(EV_REL, ev_bits)) {
-                close(fd);
-                continue;
+                #if KEYPAD_USE_EV_ABS
+                if (!test_bit(EV_ABS, ev_bits))
+                #endif
+                {
+                    close(fd);
+                    continue;
+                }
             }
 
             ev_fds[ev_count].fd = fd;
