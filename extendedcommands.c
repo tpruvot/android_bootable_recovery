@@ -972,6 +972,9 @@ void show_nandroid_advanced_restore_menu(const char* path)
                 sprintf(tmp, "%s/%s.ext3.tar", dir, name);
             }
             if (! file_exists(tmp)) {
+                sprintf(tmp, "%s/%s.ext4.tar", dir, name);
+            }
+            if (! file_exists(tmp)) {
                 list[p]=unavailable;
             } else {
                 ui_print(" %s is present. %d kB\n", basename(tmp), file_size(tmp) );
