@@ -41,19 +41,18 @@ void gr_blit(gr_surface source, int sx, int sy, int w, int h, int dx, int dy);
 unsigned int gr_get_width(gr_surface surface);
 unsigned int gr_get_height(gr_surface surface);
 
-int ev_get(struct input_event *ev, unsigned dont_wait);
-
 // input event structure, include <linux/input.h> for the definition.
 // see http://www.mjmwired.net/kernel/Documentation/input/ for info.
 struct input_event;
+
+void ev_exit(void);
+int ev_get(struct input_event *ev, unsigned dont_wait);
 
 typedef int (*ev_callback)(int fd, short revents, void *data);
 typedef int (*ev_set_key_callback)(int code, int value, void *data);
 
 int ev_init_compat(void);
 int ev_init(ev_callback input_cb, void *data);
-
-void ev_exit(void);
 
 int ev_add_fd(int fd, ev_callback cb, void *data);
 int ev_sync_key_state(ev_set_key_callback set_key_cb, void *data);
