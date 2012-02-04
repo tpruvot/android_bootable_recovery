@@ -391,7 +391,7 @@ void show_mount_usb_storage_menu()
     for (;;)
     {
         int chosen_item = get_menu_selection(headers, list, 0, 0);
-        if (chosen_item == GO_BACK || chosen_item == 0)
+        if (chosen_item == GO_BACK)
             break;
     }
 
@@ -806,18 +806,18 @@ void show_nandroid_advanced_backup_menu(const char* backup_path)
         NULL
     };
 
+    if (!has_osh()) list[9] = "";
 
     char tmp[PATH_MAX];
     if (0 != get_partition_device("wimax", tmp)) {
         // disable wimax backup option
         list[10] = NULL;
-    }
-
-    if (!has_osh()) {
-        list[9] = "";
+        if (!has_osh()) list[9] = NULL;
     }
 
     int chosen_item = get_menu_selection(headers, list, 0, 0);
+    if (chosen_item < 0 || chosen_item == GO_BACK) return;
+    if (!list[chosen_item] || !strlen(list[chosen_item])) return;
     switch (chosen_item)
     {
         case 0:
