@@ -52,6 +52,8 @@ int ev_get(struct input_event *ev, unsigned dont_wait);
 typedef int (*ev_callback)(int fd, short revents, void *data);
 typedef int (*ev_set_key_callback)(int code, int value, void *data);
 
+int ev_init_compat(void);
+
 int ev_add_fd(int fd, ev_callback cb, void *data);
 
 /* timeout has the same semantics as for poll

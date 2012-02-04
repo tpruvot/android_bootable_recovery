@@ -255,6 +255,10 @@ int ev_init(void)
     return 0;
 }
 
+int ev_init_compat(void) {
+    return ev_init();
+}
+
 int ev_add_fd(int fd, ev_callback cb, void *data)
 {
     if (ev_misc_count == MAX_MISC_FDS || cb == NULL)
