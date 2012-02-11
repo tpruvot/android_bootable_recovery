@@ -1017,6 +1017,36 @@ Value* ReadFileFn(const char* name, State* state, int argc, Expr* argv[]) {
     return v;
 }
 
+// retouch_binaries(lib1, lib2, ...)
+Value* RetouchBinariesFn(const char* name, State* state,
+                         int argc, Expr* argv[]) {
+    UpdaterInfo* ui = (UpdaterInfo*)(state->cookie);
+
+    char **retouch_entries  = ReadVarArgs(state, argc, argv);
+    if (retouch_entries == NULL) {
+        return StringValue(strdup("t"));
+    }
+
+    //To implement...
+
+    return StringValue(strdup("t"));
+}
+
+// undo_retouch_binaries(lib1, lib2, ...)
+Value* UndoRetouchBinariesFn(const char* name, State* state,
+                             int argc, Expr* argv[]) {
+    UpdaterInfo* ui = (UpdaterInfo*)(state->cookie);
+
+    char **retouch_entries  = ReadVarArgs(state, argc, argv);
+    if (retouch_entries == NULL) {
+        return StringValue(strdup("t"));
+    }
+
+    //To implement...
+
+    return StringValue(strdup("t"));
+}
+
 void RegisterInstallFunctions() {
     RegisterFunction("mount", MountFn);
     RegisterFunction("is_mounted", IsMountedFn);
@@ -1028,8 +1058,8 @@ void RegisterInstallFunctions() {
     RegisterFunction("delete_recursive", DeleteFn);
     RegisterFunction("package_extract_dir", PackageExtractDirFn);
     RegisterFunction("package_extract_file", PackageExtractFileFn);
-//    RegisterFunction("retouch_binaries", RetouchBinariesFn);
-//    RegisterFunction("undo_retouch_binaries", UndoRetouchBinariesFn);
+    RegisterFunction("retouch_binaries", RetouchBinariesFn);
+    RegisterFunction("undo_retouch_binaries", UndoRetouchBinariesFn);
     RegisterFunction("symlink", SymlinkFn);
     RegisterFunction("set_perm", SetPermFn);
     RegisterFunction("set_perm_recursive", SetPermFn);
