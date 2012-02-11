@@ -322,7 +322,7 @@ mmc_find_partition_by_name(const char *name)
 #define E2FSCK_BIN      "/sbin/e2fsck"
 
 int
-run_exec_process ( char **argv) {
+run_exec_process (char **argv) {
     pid_t pid;
     int status;
     pid = fork();
@@ -349,20 +349,20 @@ format_ext3_device (const char *device) {
     char *const tune2fs[] = {TUNE2FS_BIN, "-j", "-C", "1", device, NULL};
 #endif
     // Run mke2fs
-    if(run_exec_process(mke2fs)) {
+    if(run_exec_process((char **) mke2fs)) {
         printf("failure while running mke2fs\n");
         return -1;
     }
 
     // Run tune2fs
-    if(run_exec_process(tune2fs)) {
+    if(run_exec_process((char **) tune2fs)) {
         printf("failure while running mke2fs\n");
         return -1;
     }
 
     // Run e2fsck
     char *const e2fsck[] = {E2FSCK_BIN, "-fy", device, NULL};
-    if(run_exec_process(e2fsck)) {
+    if(run_exec_process((char **) e2fsck)) {
         printf("failure while running e2fsck\n");
         return -1;
     }
@@ -374,17 +374,17 @@ int
 format_ext2_device (const char *device) {
     // Run mke2fs
     char *const mke2fs[] = {MKE2FS_BIN, device, NULL};
-    if(run_exec_process(mke2fs))
+    if(run_exec_process((char **) mke2fs))
         return -1;
 
     // Run tune2fs
     char *const tune2fs[] = {TUNE2FS_BIN, "-C", "1", device, NULL};
-    if(run_exec_process(tune2fs))
+    if(run_exec_process((char **) tune2fs))
         return -1;
 
     // Run e2fsck
     char *const e2fsck[] = {E2FSCK_BIN, "-fy", device, NULL};
-    if(run_exec_process(e2fsck))
+    if(run_exec_process((char **) e2fsck))
         return -1;
 
     return 0;
@@ -601,7 +601,7 @@ int cmd_mmc_restore_raw_partition(const char *partition, const char *filename)
         p = mmc_find_partition_by_name(partition);
         if (p == NULL)
             return -1;
-        return mmc_raw_copy(p, filename);
+        return mmc_raw_copy(p, (char *) filename);
     }
     else {
         return mmc_raw_dump_internal(filename, partition);
@@ -616,7 +616,7 @@ int cmd_mmc_backup_raw_partition(const char *partition, const char *filename)
         p = mmc_find_partition_by_name(partition);
         if (p == NULL)
             return -1;
-        return mmc_raw_dump(p, filename);
+        return mmc_raw_dump(p, (char *) filename);
     }
     else {
         return mmc_raw_dump_internal(partition, filename);

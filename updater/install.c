@@ -32,6 +32,7 @@
 #include "mincrypt/sha.h"
 #include "minzip/DirUtil.h"
 #include "mounts.h"
+#include "mmcutils/mmcutils.h"
 #include "mtdutils/mtdutils.h"
 #include "updater.h"
 #include "applypatch/applypatch.h"

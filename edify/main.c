@@ -21,7 +21,7 @@
 #include "expr.h"
 #include "parser.h"
 
-extern int yyparse(Expr** root, int* error_count);
+//extern int yyparse(Expr** root, int* error_count);
 
 int expect(const char* expr_str, const char* expected, int* errors) {
     Expr* e;
@@ -30,7 +30,7 @@ int expect(const char* expr_str, const char* expected, int* errors) {
 
     printf(".");
 
-    yy_scan_string(expr_str);
+    yy_scan_string((char *)expr_str);
     int error_count = 0;
     error = yyparse(&e, &error_count);
     if (error > 0 || error_count > 0) {

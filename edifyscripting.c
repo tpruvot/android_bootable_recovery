@@ -40,7 +40,7 @@
 #include "edify/expr.h"
 #include "mtdutils/mtdutils.h"
 #include "mmcutils/mmcutils.h"
-//#include "edify/parser.h"
+#include "edify/parser.h"
 
 #include "yaffs2.h"
 
