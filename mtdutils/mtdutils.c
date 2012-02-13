@@ -838,7 +838,7 @@ int cmd_mtd_mount_partition(const char *partition, const char *mount_point, cons
 int cmd_mtd_get_partition_device(const char *partition, char *device)
 {
     mtd_scan_partitions();
-    MtdPartition *p = mtd_find_partition_by_name(partition);
+    MtdPartition *p = (MtdPartition *) mtd_find_partition_by_name(partition);
     if (p == NULL)
         return -1;
     sprintf(device, "/dev/block/mtdblock%d", p->device_index);
