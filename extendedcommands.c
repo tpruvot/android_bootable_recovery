@@ -425,7 +425,7 @@ int confirm_selection(const char* title, const char* confirm)
 
     if (0 == stat("/sdcard/clockworkmod/.one_confirm", &info)) {
 
-        char* items[] = {
+        const char* items[] = {
             "No",
             confirm, //" Yes -- wipe partition", [1]
         };
