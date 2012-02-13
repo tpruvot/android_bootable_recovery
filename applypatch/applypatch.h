@@ -68,6 +68,9 @@ static int SaveFileContents(const char* filename, FileContents file);
 
 void FreeFileContents(FileContents* file);
 
+int FindMatchingPatch(uint8_t* sha1, char** const patch_sha1_str,
+                      int num_patches);
+
 // bsdiff.c
 void ShowBSDiffLicense();
 int ApplyBSDiffPatch(const unsigned char* old_data, ssize_t old_size,

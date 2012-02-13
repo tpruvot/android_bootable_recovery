@@ -26,10 +26,10 @@
 #include <unistd.h>
 
 #include "mincrypt/sha.h"
+#include "applypatch.h"
 #include "mtdutils/mtdutils.h"
 #include "edify/expr.h"
 
-#include "applypatch.h"
 static int LoadPartitionContents(const char* filename, FileContents* file);
 int ParseSha1(const char* str, uint8_t* digest);
 static ssize_t FileSink(unsigned char* data, ssize_t len, void* token);
