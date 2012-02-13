@@ -21,6 +21,7 @@ LOCAL_SRC_FILES := \
 LOCAL_C_INCLUDES += bootable/recovery
 
 LOCAL_MODULE := libminelf
+LOCAL_MODULE_TAGS := eng debug
 
 LOCAL_CFLAGS += -Wall
 
