@@ -982,6 +982,7 @@ void show_nandroid_advanced_restore_menu(const char* path)
         }
     }
 
+next:
     chosen_item = get_menu_selection((char**) headers, list, 0, 0);
 
     if (list[chosen_item] != unavailable)
@@ -1031,7 +1032,11 @@ void show_nandroid_advanced_restore_menu(const char* path)
             if (confirm_selection(confirm_restore, "Yes - Restore wimax"))
                 nandroid_restore(dir, BAK_WIMAX);
             break;
+
+        case GO_BACK:
+            return;
     }
+    goto next;
 }
 
 void show_nandroid_menu()
