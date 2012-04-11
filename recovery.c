@@ -47,6 +47,8 @@
 #include "flashutils/flashutils.h"
 #include "yaffs2.h"
 
+#include "nandroid.h"
+
 static const struct option OPTIONS[] = {
   { "send_intent", required_argument, NULL, 's' },
   { "update_package", required_argument, NULL, 'u' },
@@ -819,13 +821,7 @@ int run_script_file(void) {
 		 value[SCRIPT_COMMAND_SIZE], mount[SCRIPT_COMMAND_SIZE],
 		 value1[SCRIPT_COMMAND_SIZE], value2[SCRIPT_COMMAND_SIZE];
 	char *val_start, *tok;
-	int ors_system = 0;
-	int ors_data = 0;
-	int ors_cache = 0;
-	int ors_recovery = 0;
-	int ors_boot = 0;
-	int ors_andsec = 0;
-	int ors_sdext = 0;
+	int ors_parts = 0;
 
 	if (fp != NULL) {
 		while (fgets(script_line, SCRIPT_COMMAND_SIZE, fp) != NULL && ret_val == 0) {
@@ -925,7 +921,7 @@ int run_script_file(void) {
 					{
 						struct timeval tp;
 						gettimeofday(&tp, NULL);
-						sprintf(backup_path, "/sdcard/clockworkmod/backup/%d", tp.tv_sec);
+						sprintf(backup_path, "/sdcard/clockworkmod/backup/%u", (uint32_t) tp.tv_sec);
 					}
 					else
 					{
@@ -933,8 +929,8 @@ int run_script_file(void) {
 					}
 				}
 
-				ui_print("Backup options are ignored in CWMR: '%s'\n", value1);
-				nandroid_backup(backup_path);
+				ui_print("Backup options are ignored : '%s'\n", value1);
+				nandroid_backup(backup_path, BAK_SYSTEM | BAK_DATA | BAK_CACHE);
 				ui_print("Backup complete!\n");
 			} else if (strcmp(command, "restore") == 0) {
 				// Restore
@@ -943,11 +939,7 @@ int run_script_file(void) {
 				ui_print("Restoring '%s'\n", value1);
 				tok = strtok(NULL, " ");
 				if (tok != NULL) {
-					ors_system = 0;
-					ors_data = 0;
-					ors_cache = 0;
-					ors_boot = 0;
-					ors_sdext = 0;
+					ors_parts = 0;
 
 					memset(value2, 0, sizeof(value2));
 					strcpy(value2, tok);
@@ -955,37 +947,37 @@ int run_script_file(void) {
 					line_len = strlen(value2);
 					for (i=0; i<line_len; i++) {
 						if (value2[i] == 'S' || value2[i] == 's') {
-							ors_system = 1;
+							ors_parts |= BAK_SYSTEM;
 							ui_print("System\n");
 						} else if (value2[i] == 'D' || value2[i] == 'd') {
-							ors_data = 1;
+							ors_parts |= BAK_DATA;
 							ui_print("Data\n");
 						} else if (value2[i] == 'C' || value2[i] == 'c') {
-							ors_cache = 1;
+							ors_parts |= BAK_CACHE;
 							ui_print("Cache\n");
 						} else if (value2[i] == 'R' || value2[i] == 'r') {
-							ui_print("Option for recovery ignored in CWMR\n");
+							ui_print("Option for recovery ignored\n");
 						} else if (value2[i] == '1') {
-							ui_print("%s\n", "Option for special1 ignored in CWMR");
+							ui_print("%s\n", "Option for special1 ignored");
 						} else if (value2[i] == '2') {
-							ui_print("%s\n", "Option for special1 ignored in CWMR");
+							ui_print("%s\n", "Option for special1 ignored");
 						} else if (value2[i] == '3') {
-							ui_print("%s\n", "Option for special1 ignored in CWMR");
+							ui_print("%s\n", "Option for special1 ignored");
 						} else if (value2[i] == 'B' || value2[i] == 'b') {
-							ors_boot = 1;
+							ors_parts |= BAK_BOOT;
 							ui_print("Boot\n");
 						} else if (value2[i] == 'A' || value2[i] == 'a') {
-							ui_print("Option for android secure ignored in CWMR\n");
+							ui_print("Option for android secure ignored\n");
 						} else if (value2[i] == 'E' || value2[i] == 'e') {
-							ors_sdext = 1;
+							ors_parts |= BAK_SDEXT;
 							ui_print("SD-Ext\n");
 						} else if (value2[i] == 'M' || value2[i] == 'm') {
-							ui_print("MD5 check skip option ignored in CWMR\n");
+							ui_print("MD5 check skip option ignored\n");
 						}
 					}
 				} else
 					LOGI("No restore options set\n");
-				nandroid_restore(value1, ors_boot, ors_system, ors_data, ors_cache, ors_sdext, 0);
+				nandroid_restore(value1, ors_parts);
 				ui_print("Restore complete!\n");
 			} else if (strcmp(command, "mount") == 0) {
 				// Mount
@@ -1031,7 +1023,7 @@ int run_script_file(void) {
 		fclose(fp);
 		ui_print("Done processing script file\n");
 	} else {
-		LOGE("Error opening script file '%s'\n");
+		LOGE("Error opening script file '%s'\n", SCRIPT_FILE_TMP);
 		return 1;
 	}
 	return ret_val;
