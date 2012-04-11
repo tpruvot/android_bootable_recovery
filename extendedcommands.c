@@ -48,9 +48,6 @@
 #define make_ext4fs(dev, a, b, c, d, e)  make_ext4fs_internal(dev, a, b, c, d, e, 0, 0, 0)
 #endif
 
-//custom libreboot
-extern int reboot_wrapper(const char* reason);
-
 int signature_check_enabled = 1;
 int script_assert_enabled = 1;
 

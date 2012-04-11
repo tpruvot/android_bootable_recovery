@@ -151,4 +151,17 @@ typedef struct {
 // fopen a file, mounting volumes and making parent dirs as necessary.
 FILE* fopen_path(const char *path, const char *mode);
 
+// external applets prototypes
+int busybox_driver(int argc, char **argv);
+int unyaffs_main(int argc, char **argv);
+int mkyaffs2image_main(int argc, char **argv);
+int edify_main(int argc, char **argv);
+int volume_main(int argc, char **argv);
+int setprop_main(int argc, char **argv);
+int erase_image_main(int argc, char **argv);
+int dump_image_main(int argc, char **argv);
+int flash_image_main(int argc, char **argv);
+
+int reboot_wrapper(const char* reason);
+
 #endif  // RECOVERY_COMMON_H
