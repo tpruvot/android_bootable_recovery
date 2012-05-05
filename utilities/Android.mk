@@ -76,7 +76,12 @@ ALL_DEFAULT_INSTALLED_MODULES += $(TARGET_RECOVERY_ROOT_OUT)/sbin/mke2fs
 endif #BOARD_HAS_LARGE_FILESYSTEM
 
 
-BOARD_RECOVERY_RFS_CHECK := $(shell grep rfs $(TARGET_DEVICE_DIR)/recovery.fstab)
+ifneq ($(TARGET_RECOVERY_FSTAB),)
+  BOARD_RECOVERY_RFS_CHECK := $(shell grep rfs $(TARGET_RECOVERY_FSTAB))
+else
+  BOARD_RECOVERY_RFS_CHECK := $(shell grep rfs $(TARGET_DEVICE_DIR)/recovery.fstab)
+endif
+
 ifneq ($(BOARD_RECOVERY_RFS_CHECK),)
 include $(CLEAR_VARS)
 LOCAL_MODULE := fat.format
