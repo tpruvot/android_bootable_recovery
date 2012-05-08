@@ -1163,16 +1163,13 @@ void show_advanced_menu()
                             "Report Error",
                             "Key Test",
                             "Show Log",
-#ifdef BOARD_HAS_SMALL_RECOVERY
                             "Kill adbd",
                             "Start adbd",
-#else
                             "Partition SD Card",
                             "Fix Permissions",
-# ifdef BOARD_HAS_SDCARD_INTERNAL
+#ifdef BOARD_HAS_SDCARD_INTERNAL
                             "Partition Internal SD Card",
-# endif
-#endif // BOARD_HAS_SMALL_RECOVERY
+#endif
                             NULL
     };
 
@@ -1241,13 +1238,14 @@ void show_advanced_menu()
                 ui_printlogtail(20);
                 break;
             }
-#ifdef BOARD_HAS_SMALL_RECOVERY
             case 6:
             {
-                __system("killall -9 adbd");
+                __system("echo 'eth' > /dev/usb_device_mode");
                 LOGI("\nStopping adbd...\n");
-                //__system("ps w | grep adbd | grep -v grep >> /tmp/recovery.log");
-                //ui_printlogtail(2);
+                __system("killall -6 adbd >> /tmp/recovery.log 2>&1");
+                usleep(800 * 1000);
+                __system("ps w | grep adbd | grep -v grep >> /tmp/recovery.log");
+                ui_printlogtail(2);
                 break;
             }
             case 7:
@@ -1255,14 +1253,15 @@ void show_advanced_menu()
                 __system("echo 'msc_adb' > /dev/usb_device_mode");
                 if (stat(ADBD_PATH, &info) == 0) {
                     __system(ADBD_PATH " &");
+                    usleep(800 * 1000);
                     ui_print("adbd started.\n");
+                    __system("echo 'msc_adb' > /dev/usb_device_mode");
                 } else {
                     LOGW("%s not found.\n", ADBD_PATH);
                 }
                 break;
             }
-#else
-            case 6:
+            case 8:
             {
                 static char* ext_sizes[] = { "128M",
                                              "256M",
@@ -1290,11 +1289,11 @@ void show_advanced_menu()
                 if (swap_size == GO_BACK)
                     continue;
 
-                char sddevice[256];
+                char sddevice[PATH_MAX];
                 Volume *vol = volume_for_path("/sdcard");
                 strcpy(sddevice, vol->device);
                 // we only want the mmcblk, not the partition
-                sddevice[strlen("/dev/block/mmcblkX")] = NULL;
+                sddevice[strlen("/dev/block/mmcblkX")] = '\0';
                 char cmd[PATH_MAX];
                 setenv("SDPATH", sddevice, 1);
                 sprintf(cmd, "sdparted -es %s -ss %s -efs ext3 -s", ext_sizes[ext_size], swap_sizes[swap_size]);
@@ -1305,7 +1304,7 @@ void show_advanced_menu()
                     ui_print("An error occured while partitioning your SD Card. Please see /tmp/recovery.log for more details.\n");
                 break;
             }
-            case 7:
+            case 9:
             {
                 ensure_path_mounted("/system");
                 ensure_path_mounted("/data");
@@ -1314,7 +1313,8 @@ void show_advanced_menu()
                 ui_print("Done!\n");
                 break;
             }
-            case 8:
+#ifdef BOARD_HAS_SDCARD_INTERNAL
+            case 10:
             {
                 static char* ext_sizes[] = { "128M",
                                              "256M",
