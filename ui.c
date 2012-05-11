@@ -352,7 +352,6 @@ static void *input_thread(void *cookie)
             key_press_time[ev.code] = (now.tv_sec * 1000) + (now.tv_usec / 1000);
             key_last_repeat[ev.code] = 0;
         }
-        fake_key = 0;
         const int queue_max = sizeof(key_queue) / sizeof(key_queue[0]);
         if (ev.value > 0 && key_queue_len < queue_max) {
             key_queue[key_queue_len++] = ev.code;
