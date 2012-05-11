@@ -151,6 +151,8 @@ typedef struct {
 // fopen a file, mounting volumes and making parent dirs as necessary.
 FILE* fopen_path(const char *path, const char *mode);
 
+int usb_connected(void);
+
 // external applets prototypes
 int busybox_driver(int argc, char **argv);
 int unyaffs_main(int argc, char **argv);

@@ -464,6 +464,9 @@ get_menu_selection(char** headers, char** items, int menu_only,
             }
         }
 
+        if (key == -2)
+            continue;
+
         int action = device_handle_key(key, visible);
 
         int old_selected = selected;
