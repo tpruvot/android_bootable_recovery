@@ -29,6 +29,7 @@
 #include <unistd.h>
 #include <sys/reboot.h>
 #include <cutils/android_reboot.h>
+#include <cutils/properties.h>
 
 #include "common.h"
 #include "minui/minui.h"
@@ -57,7 +58,7 @@ static int gShowBackButton = 0;
 #define PROGRESSBAR_INDETERMINATE_FPS 15
 //#define UI_WAIT_KEY_TIMEOUT_SEC    3600 // 1h
 #define UI_WAIT_KEY_TIMEOUT_SEC      600
-#define UI_KEY_REPEAT_INTERVAL 100
+#define UI_KEY_REPEAT_INTERVAL 80
 #define UI_KEY_WAIT_REPEAT 400
 
 UIParameters ui_parameters = {
@@ -122,9 +123,12 @@ static int menu_show_start = 0;             // this is line which menu display i
 // Key event input queue
 static pthread_mutex_t key_queue_mutex = PTHREAD_MUTEX_INITIALIZER;
 static pthread_cond_t key_queue_cond = PTHREAD_COND_INITIALIZER;
-static int key_queue[256], key_queue_len = 0, key_vqueue[256];
+static int key_queue[256], key_queue_len = 0;
 static int key_last_repeat[KEY_MAX + 1], key_press_time[KEY_MAX + 1];
 static volatile char key_pressed[KEY_MAX + 1];
+
+static int boardEnableKeyRepeat = 0;
+static int boardRepeatableKeys[64], boardNumRepeatableKeys = 0;
 
 // Clear the screen and draw the currently selected background icon (if any).
 // Should only be called with gUpdateMutex locked.
@@ -345,18 +349,20 @@ static void *input_thread(void *cookie)
             // our "fake" keys only report a key-down event (no
             // key-up), so don't record them in the key_pressed
             // table.
-            struct timeval now;
-            gettimeofday(&now, NULL);
-
             key_pressed[ev.code] = ev.value;
-            key_press_time[ev.code] = (now.tv_sec * 1000) + (now.tv_usec / 1000);
-            key_last_repeat[ev.code] = 0;
+
+            if (boardEnableKeyRepeat) {
+                struct timeval now;
+                gettimeofday(&now, NULL);
+
+                key_press_time[ev.code] = (now.tv_sec * 1000) + (now.tv_usec / 1000);
+                key_last_repeat[ev.code] = 0;
+            }
         }
+        fake_key = 0;
         const int queue_max = sizeof(key_queue) / sizeof(key_queue[0]);
         if (ev.value > 0 && key_queue_len < queue_max) {
             key_queue[key_queue_len++] = ev.code;
-            key_vqueue[key_queue_len] = ev.value;
-            key_queue_len++;
             pthread_cond_signal(&key_queue_cond);
         }
         pthread_mutex_unlock(&key_queue_mutex);
@@ -377,6 +383,9 @@ static void *input_thread(void *cookie)
 
 void ui_init(void)
 {
+    int i;
+    char enable_key_repeat[PROPERTY_VALUE_MAX];
+
     ui_has_initialized = 1;
     gr_init();
     ev_init_compat();
@@ -389,7 +398,6 @@ void ui_init(void)
     text_cols = gr_fb_width() / CHAR_WIDTH;
     if (text_cols > MAX_COLS - 1) text_cols = MAX_COLS - 1;
 
-    int i;
     for (i = 0; BITMAPS[i].name != NULL; ++i) {
         int result = res_create_surface(BITMAPS[i].name, BITMAPS[i].surface);
         if (result < 0) {
@@ -400,6 +408,30 @@ void ui_init(void)
             }
             *BITMAPS[i].surface = NULL;
         }
+    }
+
+    boardNumRepeatableKeys = 0;
+    memset(&boardRepeatableKeys[0], 0, sizeof(boardRepeatableKeys));
+    memset(&key_last_repeat[0], 0, sizeof(key_last_repeat));
+    memset(&key_press_time[0], 0, sizeof(key_press_time));
+
+    property_get("ro.cwm.enable_key_repeat", enable_key_repeat, "1");
+    if (!strcmp(enable_key_repeat, "1") || !strcmp(enable_key_repeat, "true")) {
+
+        char key_list[PROPERTY_VALUE_MAX];
+        property_get("ro.cwm.repeatable_keys", key_list, "");
+        if (strlen(key_list) == 0) {
+            boardRepeatableKeys[boardNumRepeatableKeys++] = KEY_VOLUMEUP;
+            boardRepeatableKeys[boardNumRepeatableKeys++] = KEY_VOLUMEDOWN;
+        } else {
+            char *pch = strtok(key_list, ",");
+            while (pch != NULL) {
+                boardRepeatableKeys[boardNumRepeatableKeys++] = atoi(pch);
+                pch = strtok(NULL, ",");
+            }
+        }
+
+        boardEnableKeyRepeat = 1;
     }
 
     pthread_t t;
@@ -643,7 +675,7 @@ void ui_show_text(int visible)
 
 int ui_wait_key()
 {
-    pthread_mutex_lock(&key_queue_mutex);
+    int key = -1;
 
     // Time out after UI_WAIT_KEY_TIMEOUT_SEC, unless a USB cable is
     // plugged in.
@@ -657,45 +689,52 @@ int ui_wait_key()
 
         int rc = 0;
         while (key_queue_len == 0 && rc != ETIMEDOUT) {
+            pthread_mutex_lock(&key_queue_mutex);
             rc = pthread_cond_timedwait(&key_queue_cond, &key_queue_mutex,
                                         &timeout);
+            pthread_mutex_unlock(&key_queue_mutex);
         }
-    } while (usb_connected() && (key_queue_len == 0));
+        if (rc == ETIMEDOUT && !usb_connected()) return -1;
 
-    int key = -1;
-    while (key_queue_len > 0) {
-        key = key_queue[0];
-        int val = key_vqueue[0];
-        memcpy(&key_queue[0], &key_queue[1], sizeof(int) * --key_queue_len);
-        memcpy(&key_vqueue[0], &key_vqueue[1], sizeof(int) * key_queue_len);
-        // Handle long presses
-        if (val == 1) {
-            int now_msec;
+        while (key_queue_len > 0) {
+
+            int now_msec,val;
             struct timeval now;
+
+            usleep(1);
             gettimeofday(&now, NULL);
             now_msec = (now.tv_sec * 1000) + (now.tv_usec / 1000);
 
-            if (key_pressed[key] == 1) {
-                key_vqueue[key_queue_len] = key_pressed[key];
-                key_queue[key_queue_len++] = key;
-            } else {
-                key = -2;
-                break;
-            }
+            pthread_mutex_lock(&key_queue_mutex);
+            key = key_queue[0];
+            memcpy(&key_queue[0], &key_queue[1], sizeof(int) * --key_queue_len);
+            pthread_mutex_unlock(&key_queue_mutex);
 
-            if (now_msec > key_press_time[key] + UI_KEY_WAIT_REPEAT &&
-                now_msec > key_last_repeat[key] + UI_KEY_REPEAT_INTERVAL) { // repeat presses
-                key_last_repeat[key] = now_msec;
-            } else if (key_last_repeat[key] > 0) { // in between
-                key = -2;
-            } else { // first press
-                key_last_repeat[key] = now_msec;
+            if (boardEnableKeyRepeat) {
+                int k = 0;
+                for (;k < boardNumRepeatableKeys; ++k) {
+                    if (boardRepeatableKeys[k] == key) break;
+                }
+                if (boardRepeatableKeys[k] == key) {
+                    if (key_pressed[key] != 1) continue;
+                    key_queue[key_queue_len] = key;
+                    key_queue_len++;
+
+                    if ((now_msec > (key_press_time[key] + UI_KEY_WAIT_REPEAT) &&
+                         now_msec > (key_last_repeat[key] + UI_KEY_REPEAT_INTERVAL))
+                        || key_last_repeat[key] == 0)
+                    {
+                        key_last_repeat[key] = now_msec;
+
+                    } else if (key_last_repeat[key] > 0) {
+                        continue;
+                    }
+                }
             }
+            return key;
         }
-        break;
-    }
+    } while (key_queue_len == 0);
 
-    pthread_mutex_unlock(&key_queue_mutex);
     return key;
 }
 
