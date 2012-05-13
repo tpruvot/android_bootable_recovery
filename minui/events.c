@@ -37,7 +37,7 @@
     ((array)[(bit)/BITS_PER_LONG] & (1 << ((bit) % BITS_PER_LONG)))
 
 #define VIBRATOR_TIMEOUT_FILE	"/sys/class/timed_output/vibrator/enable"
-#define VIBRATOR_TIME_MS	50
+#define VIBRATOR_TIME_MS	32
 
 #define PRESS_THRESHHOLD    10
 
