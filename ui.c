@@ -315,7 +315,6 @@ static void *input_thread(void *cookie)
         struct input_event ev;
         do {
             ev_get(&ev, 0);
-
             if (ev.type == EV_SYN) {
                 continue;
             } else if (ev.type == EV_REL) {
@@ -344,13 +343,24 @@ static void *input_thread(void *cookie)
             }
         } while (ev.type != EV_KEY || ev.code > KEY_MAX);
 
+        // EV_KEY event received
+
+        if (ev.value == 2) {
+            // ignore software key repeat (has EV_REP ability)
+            boardEnableKeyRepeat = 0;
+            fake_key = 1;
+        }
+
         pthread_mutex_lock(&key_queue_mutex);
         if (!fake_key) {
             // our "fake" keys only report a key-down event (no
             // key-up), so don't record them in the key_pressed
             // table.
             key_pressed[ev.code] = ev.value;
-
+        }
+        const int queue_max = sizeof(key_queue) / sizeof(key_queue[0]);
+        if (ev.value > 0 && key_queue_len < queue_max) {
+            key_queue[key_queue_len++] = ev.code;
             if (boardEnableKeyRepeat) {
                 struct timeval now;
                 gettimeofday(&now, NULL);
@@ -358,11 +368,6 @@ static void *input_thread(void *cookie)
                 key_press_time[ev.code] = (now.tv_sec * 1000) + (now.tv_usec / 1000);
                 key_last_repeat[ev.code] = 0;
             }
-        }
-        fake_key = 0;
-        const int queue_max = sizeof(key_queue) / sizeof(key_queue[0]);
-        if (ev.value > 0 && key_queue_len < queue_max) {
-            key_queue[key_queue_len++] = ev.code;
             pthread_cond_signal(&key_queue_cond);
         }
         pthread_mutex_unlock(&key_queue_mutex);
@@ -714,11 +719,14 @@ int ui_wait_key()
 
             if (boardEnableKeyRepeat) {
                 int k = 0;
-                if (key_pressed[key] != 1) continue;
+                if (!key_pressed[key]) {
+                    if (key_last_repeat[key] > 0) continue;
+                    else return key;
+                }
                 for (;k < boardNumRepeatableKeys; ++k) {
                     if (boardRepeatableKeys[k] == key) break;
                 }
-                if (boardRepeatableKeys[k] == key) {
+                if (k < boardNumRepeatableKeys) {
                     key_queue[key_queue_len] = key;
                     key_queue_len++;
 
