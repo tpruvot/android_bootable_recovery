@@ -421,6 +421,8 @@ void ui_init(void)
         char key_list[PROPERTY_VALUE_MAX];
         property_get("ro.cwm.repeatable_keys", key_list, "");
         if (strlen(key_list) == 0) {
+            boardRepeatableKeys[boardNumRepeatableKeys++] = KEY_UP;
+            boardRepeatableKeys[boardNumRepeatableKeys++] = KEY_DOWN;
             boardRepeatableKeys[boardNumRepeatableKeys++] = KEY_VOLUMEUP;
             boardRepeatableKeys[boardNumRepeatableKeys++] = KEY_VOLUMEDOWN;
         } else {
@@ -712,11 +714,11 @@ int ui_wait_key()
 
             if (boardEnableKeyRepeat) {
                 int k = 0;
+                if (key_pressed[key] != 1) continue;
                 for (;k < boardNumRepeatableKeys; ++k) {
                     if (boardRepeatableKeys[k] == key) break;
                 }
                 if (boardRepeatableKeys[k] == key) {
-                    if (key_pressed[key] != 1) continue;
                     key_queue[key_queue_len] = key;
                     key_queue_len++;
 
