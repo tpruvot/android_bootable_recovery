@@ -466,12 +466,26 @@ get_menu_selection(char** headers, char** items, int menu_only,
     int wrap_count = 0;
 
     while (chosen_item < 0 && chosen_item != GO_BACK) {
+        int old_selected, action;
         int key = ui_wait_key();
         int visible = ui_text_visible();
 
-        int action = device_handle_key(key, visible);
+        if (key == -1) {   // ui_wait_key() timed out
+            if (ui_text_ever_visible()) {
+                continue;
+            } else {
+                LOGI("timed out waiting for key input; rebooting.\n");
+                ui_end_menu();
+                return ITEM_REBOOT;
+            }
+        }
 
-        int old_selected = selected;
+        if (key == -2)
+            continue;
+
+        action = device_handle_key(key, visible);
+
+        old_selected = selected;
 
         if (action < 0) {
             switch (action) {

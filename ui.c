@@ -99,6 +99,7 @@ static char text[MAX_ROWS][MAX_COLS];
 static int text_cols = 0, text_rows = 0;
 static int text_col = 0, text_row = 0, text_top = 0;
 static int show_text = 0;
+static int show_text_ever = 0;   // has show_text ever been 1?
 
 static char menu[MENU_MAX_ROWS][MENU_MAX_COLS];
 static int show_menu = 0;
@@ -602,10 +603,19 @@ int ui_text_visible()
     return visible;
 }
 
+int ui_text_ever_visible()
+{
+    pthread_mutex_lock(&gUpdateMutex);
+    int ever_visible = show_text_ever;
+    pthread_mutex_unlock(&gUpdateMutex);
+    return ever_visible;
+}
+
 void ui_show_text(int visible)
 {
     pthread_mutex_lock(&gUpdateMutex);
     show_text = visible;
+    if (show_text) show_text_ever = 1;
     update_screen_locked();
     pthread_mutex_unlock(&gUpdateMutex);
 }
