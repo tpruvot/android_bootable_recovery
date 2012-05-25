@@ -17,6 +17,7 @@
 #ifndef RECOVERY_COMMON_H
 #define RECOVERY_COMMON_H
 
+#include <errno.h>
 #include <stdio.h>
 
 // Initialize the graphics system.
