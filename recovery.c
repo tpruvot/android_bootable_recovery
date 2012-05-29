@@ -47,8 +47,6 @@
 #include "flashutils/flashutils.h"
 #include "yaffs2.h"
 
-#include "nandroid.h"
-
 static const struct option OPTIONS[] = {
   { "send_intent", required_argument, NULL, 's' },
   { "update_package", required_argument, NULL, 'u' },

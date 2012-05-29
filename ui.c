@@ -117,7 +117,7 @@ static int menu_show_start = 0;             // this is line which menu display i
 static pthread_mutex_t key_queue_mutex = PTHREAD_MUTEX_INITIALIZER;
 static pthread_cond_t key_queue_cond = PTHREAD_COND_INITIALIZER;
 static int key_queue[256], key_queue_len = 0;
-static time_t key_last_repeat[KEY_MAX + 1], key_press_time[KEY_MAX + 1];
+static int key_last_repeat[KEY_MAX + 1], key_press_time[KEY_MAX + 1];
 static volatile char key_pressed[KEY_MAX + 1];
 
 static int boardEnableKeyRepeat = 0;
@@ -356,9 +356,9 @@ static void *input_thread(void *cookie)
             if (boardEnableKeyRepeat) {
                 struct timeval now;
                 gettimeofday(&now, NULL);
+
                 key_press_time[ev.code] = (now.tv_sec * 1000) + (now.tv_usec / 1000);
                 key_last_repeat[ev.code] = 0;
-                usleep(400 * UI_KEY_WAIT_REPEAT);
             }
             pthread_cond_signal(&key_queue_cond);
         }
@@ -697,10 +697,10 @@ int ui_wait_key()
 
         while (key_queue_len > 0) {
 
-            time_t now_msec;
+            int now_msec,val;
             struct timeval now;
 
-            usleep(UI_KEY_REPEAT_INTERVAL * 100);
+            usleep(1);
             gettimeofday(&now, NULL);
             now_msec = (now.tv_sec * 1000) + (now.tv_usec / 1000);
 
