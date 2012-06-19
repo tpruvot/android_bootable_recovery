@@ -580,6 +580,47 @@ void ui_reset_text_col()
     pthread_mutex_unlock(&gUpdateMutex);
 }
 
+/*
+ * print a line without log and stay on current row
+ * for file listing during backup/restore
+ */
+void ui_print_status(char* line)
+{
+    int len = strlen(line);
+
+    if (!len) return;
+    if (!ui_has_initialized) return;
+
+    // one single line
+    text_col = 0;
+    pthread_mutex_lock(&gUpdateMutex);
+    if (text_rows > 0 && text_cols > 0) {
+        char *ptr;
+        for (ptr = line; *ptr != '\0'; ++ptr) {
+            if (*ptr == '\n' || text_col >= text_cols) {
+                break;
+            }
+            text[text_row][text_col++] = *ptr;
+        }
+        text[text_row][text_col] = '\0';
+    }
+/*
+    int row = menu_top+1;
+    for (; row < text_rows; ++row) {
+        gr_color(0, 0, 0, 160);
+        gr_fill(0, row*CHAR_HEIGHT, gr_fb_width(), CHAR_HEIGHT);
+
+        gr_color(NORMAL_TEXT_COLOR);
+        draw_text_line(row, text[(row+text_top) % text_rows]);
+    }
+    gr_flip();
+*/
+    // or... with progress bar
+    update_screen_locked();
+
+    pthread_mutex_unlock(&gUpdateMutex);
+}
+
 #define MENU_ITEM_HEADER " - "
 #define MENU_ITEM_HEADER_LENGTH strlen(MENU_ITEM_HEADER)
 
