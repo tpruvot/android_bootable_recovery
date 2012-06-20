@@ -722,6 +722,20 @@ void ui_show_text(int visible)
 
 int ui_wait_key()
 {
+    if (boardEnableKeyRepeat) return ui_wait_key_with_repeat();
+    pthread_mutex_lock(&key_queue_mutex);
+    while (key_queue_len == 0) {
+        pthread_cond_wait(&key_queue_cond, &key_queue_mutex);
+    }
+
+    int key = key_queue[0];
+    memcpy(&key_queue[0], &key_queue[1], sizeof(int) * --key_queue_len);
+    pthread_mutex_unlock(&key_queue_mutex);
+    return key;
+}
+
+int ui_wait_key_with_repeat()
+{
     int key = -1;
 
     // Time out after UI_WAIT_KEY_TIMEOUT_SEC, unless a USB cable is
@@ -747,6 +761,7 @@ int ui_wait_key()
 
             unsigned long now_msec;
             struct timeval now;
+            int k = 0;
 
             usleep(1);
             gettimeofday(&now, NULL);
@@ -757,34 +772,29 @@ int ui_wait_key()
             memcpy(&key_queue[0], &key_queue[1], sizeof(int) * --key_queue_len);
             pthread_mutex_unlock(&key_queue_mutex);
 
-            if (boardEnableKeyRepeat) {
-                int k = 0;
-                if (!key_pressed[key]) {
-                    if (key_last_repeat[key] > 0) continue;
-                    else return key;
-                }
-                for (;k < boardNumRepeatableKeys; ++k) {
-                    if (boardRepeatableKeys[k] == key) break;
-                }
-                if (k < boardNumRepeatableKeys) {
-                    key_queue[key_queue_len] = key;
-                    key_queue_len++;
+            if (!key_pressed[key]) {
+                if (key_last_repeat[key] > 0) continue;
+                else return key;
+            }
+            for (;k < boardNumRepeatableKeys; ++k) {
+                if (boardRepeatableKeys[k] == key) break;
+            }
+            if (k < boardNumRepeatableKeys) {
+                key_queue[key_queue_len] = key;
+                key_queue_len++;
 
-                    if ((now_msec > (key_press_time[key] + UI_KEY_WAIT_REPEAT) &&
-                         now_msec > (key_last_repeat[key] + UI_KEY_REPEAT_INTERVAL))
-                        || key_last_repeat[key] == 0)
-                    {
-                        key_last_repeat[key] = now_msec;
-
-                    } else if (key_last_repeat[key] > 0) {
-                        continue;
-                    }
+                if ((now_msec > key_press_time[key] + UI_KEY_WAIT_REPEAT &&
+                     now_msec > key_last_repeat[key] + UI_KEY_REPEAT_INTERVAL)
+                    || key_last_repeat[key] == 0)
+                {
+                    key_last_repeat[key] = now_msec;
+                } else if (key_last_repeat[key] > 0) {
+                    continue;
                 }
             }
             return key;
         }
     } while (key_queue_len == 0);
-
     return key;
 }
 
