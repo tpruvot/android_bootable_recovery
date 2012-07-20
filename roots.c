@@ -15,6 +15,7 @@
  */
 
 #include <errno.h>
+#include <fcntl.h>
 #include <stdlib.h>
 #include <sys/mount.h>
 #include <sys/stat.h>
@@ -31,8 +32,39 @@
 
 #ifdef USE_EXT4
 #include "make_ext4fs.h"
-//ICS Correct ext4 prototype
-#define make_ext4fs(dev, a, b, c, d, e)  make_ext4fs_internal(dev, a, b, c, d, e, 0, 0, 0)
+
+// JB system/extras/ext4_utils wrapper
+#define make_ext4fs(filename, dir, mp, c, d, e) \
+	make_ext4fs_wrapper(filename, dir, mp, c, d, e)
+/*
+int make_ext4fs_internal(int fd, const char *directory,
+                         char *mountpoint, fs_config_func_t fs_config_func, int gzip, int sparse,
+                         int crc, int wipe, int init_itabs, struct selabel_handle *sehnd);
+*/
+
+#ifndef O_BINARY
+#define O_BINARY 0
+#endif
+
+int make_ext4fs_wrapper(const char *filename, const char *directory,
+                char *mountpoint, fs_config_func_t fs_config_func, int gzip, int sparse)
+{
+    int fd;
+    int status;
+
+    reset_ext4fs_info();
+    info.len = 0;
+
+    fd = open(filename, O_WRONLY | O_CREAT | O_TRUNC | O_BINARY, 0644);
+    if (fd < 0) {
+        error_errno("open");
+        return EXIT_FAILURE;
+    }
+
+    status = make_ext4fs_internal(fd, NULL, mountpoint, NULL, 0, 0, 0, 1, 0, NULL);
+    close(fd);
+    return status;
+}
 #endif
 
 int num_volumes;

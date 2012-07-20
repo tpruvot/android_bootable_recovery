@@ -44,8 +44,9 @@
 
 #ifdef USE_EXT4
 #include "make_ext4fs.h"
-//ICS Correct ext4 prototype
-#define make_ext4fs(dev, a, b, c, d, e)  make_ext4fs_internal(dev, a, b, c, d, e, 0, 0, 0)
+// JB system/extras/ext4_utils wrapper
+#define make_ext4fs(filename, dir, mp, c, d, e) \
+        make_ext4fs_wrapper(filename, dir, mp, c, d, e)
 #endif
 
 int signature_check_enabled = 1;
