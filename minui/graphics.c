@@ -63,6 +63,7 @@ static GGLSurface gr_font_texture;
 static GGLSurface gr_framebuffer[NUM_BUFFERS];
 static GGLSurface gr_mem_surface;
 static unsigned gr_active_fb = 0;
+static unsigned double_buffering = 0;
 
 static int gr_fb_fd = -1;
 static int gr_vt_fd = -1;
@@ -145,6 +146,12 @@ static int get_framebuffer(GGLSurface *fb)
 
     fb++;
 
+    /* check if we can use double buffering */
+    if (vi.yres * fi.line_length * NUM_BUFFERS > fi.smem_len)
+        return fd;
+
+    double_buffering = 1;
+
     fb->version = sizeof(*fb);
     fb->width = vi.xres;
     fb->height = vi.yres;
@@ -167,7 +174,7 @@ static void get_memory_surface(GGLSurface* ms) {
 
 static void set_active_framebuffer(unsigned n)
 {
-    if (n > 1) return;
+    if (n >= NUM_BUFFERS || !double_buffering) return;
     vi.yres_virtual = vi.yres * NUM_BUFFERS;
     vi.yoffset = n * vi.yres;
     vi.bits_per_pixel = PIXEL_SIZE * 8;
@@ -181,7 +188,8 @@ void gr_flip(void)
     GGLContext *gl = gr_context;
 
     /* swap front and back buffers */
-    gr_active_fb = (gr_active_fb + 1) & 1;
+    if (double_buffering)
+        gr_active_fb = (gr_active_fb + 1) % NUM_BUFFERS;
 
 #ifdef BOARD_HAS_FLIPPED_SCREEN
     /* flip buffer 180 degrees for devices with physicaly inverted screens */
