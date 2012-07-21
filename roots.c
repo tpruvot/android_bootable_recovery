@@ -42,10 +42,6 @@ int make_ext4fs_internal(int fd, const char *directory,
                          int crc, int wipe, int init_itabs, struct selabel_handle *sehnd);
 */
 
-#ifndef O_BINARY
-#define O_BINARY 0
-#endif
-
 int make_ext4fs_wrapper(const char *filename, const char *directory,
                 char *mountpoint, fs_config_func_t fs_config_func, int gzip, int sparse)
 {

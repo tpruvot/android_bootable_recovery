@@ -42,13 +42,6 @@
 //#include EXPAND(BUILD_TOP/external/yaffs2/yaffs2/utils/unyaffs.h)
 #include "yaffs2.h"
 
-#ifdef USE_EXT4
-#include "make_ext4fs.h"
-// JB system/extras/ext4_utils wrapper
-#define make_ext4fs(filename, dir, mp, c, d, e) \
-        make_ext4fs_wrapper(filename, dir, mp, c, d, e)
-#endif
-
 int signature_check_enabled = 1;
 int script_assert_enabled = 1;
 

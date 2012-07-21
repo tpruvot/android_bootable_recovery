@@ -169,4 +169,8 @@ int flash_image_main(int argc, char **argv);
 
 int reboot_wrapper(const char* reason);
 
+#ifndef O_BINARY
+#define O_BINARY 0
+#endif
+
 #endif  // RECOVERY_COMMON_H
